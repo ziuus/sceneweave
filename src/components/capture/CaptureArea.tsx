@@ -2,11 +2,12 @@
 
 import React, { useState, useRef, useCallback, ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Upload, Image, Globe, Sparkles, Loader2, Check } from 'lucide-react';
+import { Camera, Upload, Image, Globe, Sparkles, Loader2, Check, Key, ChevronDown } from 'lucide-react';
 import { Button, GlassPanel, Input } from '@/components/ui';
 import { useApp } from '@/lib/store/AppContext';
 import { CapturedInput, InputType } from '@/lib/scene/types';
 import { createDemoPanoramaDataUrl } from '@/lib/scene/demoScene';
+import { ApiKeyInput } from '@/components/ui/ApiKeyInput';
 
 export function CaptureArea() {
   const { setCapturedInput, setStage, setDemo, setError } = useApp();
@@ -158,6 +159,15 @@ export function CaptureArea() {
           Capture a panorama or photo of your space, and let AI transform it into an adaptive workspace.
         </motion.p>
       </div>
+      
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="mb-8"
+      >
+        <ApiKeyInput />
+      </motion.div>
       
       <GlassPanel 
         variant="strong" 

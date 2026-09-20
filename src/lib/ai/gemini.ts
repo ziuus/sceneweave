@@ -156,11 +156,18 @@ export async function analyzeSceneWithGemini(
 
 export { mockAIProvider };
 
+function getApiKey(): string | null {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('gemini_api_key');
+  }
+  return process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || null;
+}
+
 export const geminiProvider = {
   name: 'gemini',
   
   async analyzeScene(imageData: string, inputType: AIInputType): Promise<SceneAnalysis> {
-    const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    const apiKey = getApiKey();
     if (!apiKey) {
       throw new Error('Gemini API key not configured');
     }
@@ -168,7 +175,7 @@ export const geminiProvider = {
   },
   
   async interpretIntent(input: string): Promise<string> {
-    const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    const apiKey = getApiKey();
     if (!apiKey) {
       return mockAIProvider.interpretIntent(input);
     }
@@ -195,9 +202,9 @@ Return ONLY the mode name (study|brainstorm|plan|focus).`;
 
 export async function getAIProvider() {
   const providerName = process.env.NEXT_PUBLIC_AI_PROVIDER || 'auto';
+  const apiKey = getApiKey();
   
-  if (providerName === 'gemini' || (providerName === 'auto' && (process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY))) {
-    const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+  if (providerName === 'gemini' || (providerName === 'auto' && apiKey)) {
     if (apiKey) {
       return geminiProvider;
     }
