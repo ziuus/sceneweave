@@ -9,7 +9,6 @@ import {
   Html, 
   useGLTF,
 } from '@react-three/drei';
-import { EffectComposer, Bloom, Vignette, ChromaticAberration } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { motion } from 'framer-motion';
 import { SceneAnalysis, Surface, DetectedObject, EnvironmentModifications, CameraPreset } from '@/lib/scene/types';
@@ -342,16 +341,6 @@ function CameraController({
   return null;
 }
 
-function EffectsComposer({ effects }: { effects: EnvironmentModifications['effects'] }) {
-  return (
-    <EffectComposer>
-      {effects.bloom > 0 && <Bloom intensity={effects.bloom} mipmapBlur={true} />}
-      {effects.vignette > 0 && <Vignette eskil={false} offset={effects.vignette} darkness={1.5} />}
-      {effects.chromaticAberration > 0 && <ChromaticAberration offset={[effects.chromaticAberration, 0]} />}
-    </EffectComposer>
-  );
-}
-
 interface SpatialCanvasProps {
   scene: SceneAnalysis;
   environmentMods?: EnvironmentModifications;
@@ -447,8 +436,6 @@ function SpatialCanvasInner({
           rotateSpeed={0.5}
           zoomSpeed={1}
         />
-        
-        <EffectsComposer effects={environmentMods?.effects || { vignette: 0.3, bloom: 0.1, chromaticAberration: 0 }} />
         
         <Html
           fullscreen
