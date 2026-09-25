@@ -90,12 +90,17 @@ export async function analyzeSceneWithGemini(
 ): Promise<SceneAnalysis> {
   const result = await callGeminiVision(apiKey, imageData, SCENE_ANALYSIS_PROMPT);
   
-  const surfaces: Surface[] = (result.surfaces || []).map((s: any, i: number) => ({
-    id: s.id || `surface-${i}`,
-    type: s.type || 'wall',
-    position: s.position || [0, 0, 0],
-    rotation: s.rotation || [0, 0, 0],
-    dimensions: s.dimensions || [1, 1],
+  const surfaces: Surface[] = (result.surfaces || []).map((s: any, i: number) => {
+    let rotation = s.rotation || [0, 0, 0];
+    if (s.type === 'floor') rotation = [-Math.PI / 2, 0, 0];
+    if (s.type === 'ceiling') rotation = [Math.PI / 2, 0, 0];
+    
+    return {
+      id: s.id || `surface-${i}`,
+      type: s.type || 'wall',
+      position: s.position || [0, 0, 0],
+      rotation,
+      dimensions: s.dimensions || [5, 3],
     material: {
       color: s.material?.color || '#1a1a2e',
       roughness: s.material?.roughness ?? 0.8,

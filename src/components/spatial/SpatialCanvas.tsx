@@ -47,7 +47,7 @@ function SurfaceMesh({ surface, materialOverrides }: { surface: Surface; materia
       color: surface.material.color,
       roughness: surface.material.roughness,
       metalness: surface.material.metalness,
-      side: THREE.DoubleSide,
+      side: THREE.FrontSide,
     };
     
     if (surface.material.emissive) {
@@ -361,9 +361,9 @@ function SpatialCanvasInner({
   const mobile = isMobile();
   
   const defaultCamera: CameraPreset = useMemo(() => ({
-    position: [0, 1.5, 3.5],
+    position: [0, 1.6, 1.5],
     target: [0, 0.8, -0.5],
-    fov: 60,
+    fov: 75,
     transitionDuration: 1.5,
   }), []);
   
