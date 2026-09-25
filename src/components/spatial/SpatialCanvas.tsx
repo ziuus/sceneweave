@@ -89,104 +89,222 @@ function ProceduralObject({ object, materialOverrides, onClick }: {
   materialOverrides?: Partial<THREE.MeshStandardMaterialParameters>;
   onClick?: () => void;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   const colorConfig = OBJECT_COLORS[object.type] || { color: '#2a2a2a' };
-  
-  const geometry = useMemo(() => {
-    switch (object.type) {
-      // Bedroom & Living
-      case 'bed':
-        // Bed base / frame
-        return new THREE.BoxGeometry(1, 1, 1);
-      case 'wardrobe':
-      case 'cupboard':
-      case 'almirah':
-        return new THREE.BoxGeometry(1, 1, 1);
-      case 'chair':
-      case 'office-chair':
-        return new THREE.CylinderGeometry(0.35, 0.3, 1, 12);
-      case 'sofa':
-      case 'couch':
-        return new THREE.BoxGeometry(1, 1, 1);
-      case 'table':
-      case 'desk':
-        return new THREE.BoxGeometry(1, 1, 1);
-      case 'monitor':
-      case 'tv':
-        return new THREE.BoxGeometry(1, 1, 0.08);
-      case 'laptop':
-        return new THREE.BoxGeometry(1, 0.25, 0.8);
-      case 'fan':
-      case 'ceiling-fan':
-        // A compact central hub with subtle rotor disc
-        return new THREE.CylinderGeometry(0.5, 0.5, 0.06, 16);
-      case 'desk-lamp':
-        return new THREE.CylinderGeometry(0.2, 0.35, 1, 8);
-      case 'plant':
-        return new THREE.ConeGeometry(0.4, 1, 8);
-      case 'bookshelf':
-        return new THREE.BoxGeometry(1, 1, 1);
-      case 'window':
-        return new THREE.BoxGeometry(1, 1, 0.05);
-      case 'whiteboard':
-        return new THREE.BoxGeometry(1, 1, 0.04);
-      case 'keyboard':
-        return new THREE.BoxGeometry(1, 0.06, 0.4);
-      case 'mouse':
-        return new THREE.BoxGeometry(0.3, 0.1, 0.5);
-      case 'coffee-mug':
-        return new THREE.CylinderGeometry(0.2, 0.2, 0.4, 12);
-      default:
-        return new THREE.BoxGeometry(1, 1, 1);
-    }
-  }, [object.type]);
   
   const material = useMemo(() => {
     const mat = new THREE.MeshStandardMaterial({
       color: colorConfig.color,
-      roughness: 0.7,
-      metalness: 0.1,
+      roughness: colorConfig.roughness ?? 0.7,
+      metalness: colorConfig.metalness ?? 0.1,
       ...materialOverrides,
     });
-    
     if (colorConfig.emissive) {
       mat.emissive = new THREE.Color(colorConfig.emissive);
       mat.emissiveIntensity = 0;
     }
-    
     return mat;
   }, [colorConfig, materialOverrides]);
-  
+
   useFrame(() => {
-    if (meshRef.current && materialOverrides?.emissiveIntensity !== undefined) {
-      const mat = meshRef.current.material as THREE.MeshStandardMaterial;
-      if (mat.emissive) {
-        mat.emissiveIntensity = materialOverrides.emissiveIntensity;
-      }
+    if (materialOverrides?.emissiveIntensity !== undefined && material.emissive) {
+      material.emissiveIntensity = materialOverrides.emissiveIntensity;
     }
   });
-  
+
+  const renderDetailedObject = () => {
+    switch (object.type) {
+      case 'bed':
+        return (
+          <>
+            {/* Bed frame */}
+            <mesh position={[0, -0.25, 0]} castShadow receiveShadow>
+              <boxGeometry args={[1, 0.5, 1]} />
+              <meshStandardMaterial color="#5c3a21" roughness={0.7} />
+            </mesh>
+            {/* Mattress */}
+            <mesh position={[0, 0.1, 0]} castShadow receiveShadow material={material}>
+              <boxGeometry args={[0.95, 0.2, 0.95]} />
+            </mesh>
+            {/* Pillow */}
+            <mesh position={[0, 0.25, -0.35]} castShadow receiveShadow>
+              <boxGeometry args={[0.6, 0.1, 0.2]} />
+              <meshStandardMaterial color="#ffffff" roughness={0.9} />
+            </mesh>
+          </>
+        );
+      case 'desk':
+      case 'table':
+        return (
+          <>
+            {/* Table top */}
+            <mesh position={[0, 0.45, 0]} castShadow receiveShadow material={material}>
+              <boxGeometry args={[1, 0.1, 1]} />
+            </mesh>
+            {/* Legs */}
+            <mesh position={[-0.45, -0.05, -0.45]} castShadow receiveShadow material={material}>
+              <cylinderGeometry args={[0.05, 0.05, 0.9, 8]} />
+            </mesh>
+            <mesh position={[0.45, -0.05, -0.45]} castShadow receiveShadow material={material}>
+              <cylinderGeometry args={[0.05, 0.05, 0.9, 8]} />
+            </mesh>
+            <mesh position={[-0.45, -0.05, 0.45]} castShadow receiveShadow material={material}>
+              <cylinderGeometry args={[0.05, 0.05, 0.9, 8]} />
+            </mesh>
+            <mesh position={[0.45, -0.05, 0.45]} castShadow receiveShadow material={material}>
+              <cylinderGeometry args={[0.05, 0.05, 0.9, 8]} />
+            </mesh>
+          </>
+        );
+      case 'wardrobe':
+      case 'almirah':
+      case 'cupboard':
+        return (
+          <>
+            {/* Main body */}
+            <mesh position={[0, 0, 0]} castShadow receiveShadow material={material}>
+              <boxGeometry args={[1, 1, 1]} />
+            </mesh>
+            {/* Doors */}
+            <mesh position={[-0.25, 0, 0.505]} castShadow receiveShadow>
+              <boxGeometry args={[0.48, 0.96, 0.01]} />
+              <meshStandardMaterial color={colorConfig.color} roughness={0.8} />
+            </mesh>
+            <mesh position={[0.25, 0, 0.505]} castShadow receiveShadow>
+              <boxGeometry args={[0.48, 0.96, 0.01]} />
+              <meshStandardMaterial color={colorConfig.color} roughness={0.8} />
+            </mesh>
+            {/* Handles */}
+            <mesh position={[-0.05, 0, 0.52]} castShadow receiveShadow>
+              <cylinderGeometry args={[0.02, 0.02, 0.15, 8]} />
+              <meshStandardMaterial color="#aaaaaa" metalness={0.8} roughness={0.2} />
+            </mesh>
+            <mesh position={[0.05, 0, 0.52]} castShadow receiveShadow>
+              <cylinderGeometry args={[0.02, 0.02, 0.15, 8]} />
+              <meshStandardMaterial color="#aaaaaa" metalness={0.8} roughness={0.2} />
+            </mesh>
+          </>
+        );
+      case 'chair':
+      case 'office-chair':
+        return (
+          <>
+            {/* Seat */}
+            <mesh position={[0, -0.1, 0]} castShadow receiveShadow material={material}>
+              <boxGeometry args={[0.8, 0.1, 0.8]} />
+            </mesh>
+            {/* Backrest */}
+            <mesh position={[0, 0.25, -0.35]} castShadow receiveShadow material={material}>
+              <boxGeometry args={[0.8, 0.6, 0.1]} />
+            </mesh>
+            {/* Base column */}
+            <mesh position={[0, -0.3, 0]} castShadow receiveShadow>
+              <cylinderGeometry args={[0.08, 0.08, 0.4, 8]} />
+              <meshStandardMaterial color="#222" metalness={0.5} roughness={0.5} />
+            </mesh>
+            {/* Base legs */}
+            <mesh position={[0, -0.45, 0]} castShadow receiveShadow>
+              <boxGeometry args={[0.9, 0.1, 0.1]} />
+              <meshStandardMaterial color="#222" metalness={0.5} roughness={0.5} />
+            </mesh>
+            <mesh position={[0, -0.45, 0]} rotation={[0, Math.PI/2, 0]} castShadow receiveShadow>
+              <boxGeometry args={[0.9, 0.1, 0.1]} />
+              <meshStandardMaterial color="#222" metalness={0.5} roughness={0.5} />
+            </mesh>
+          </>
+        );
+      case 'laptop':
+        return (
+          <>
+            <mesh position={[0, -0.45, 0.1]} castShadow receiveShadow material={material}>
+              <boxGeometry args={[1, 0.1, 0.8]} />
+            </mesh>
+            <mesh position={[0, -0.05, -0.25]} rotation={[0.2, 0, 0]} castShadow receiveShadow material={material}>
+              <boxGeometry args={[1, 0.8, 0.05]} />
+            </mesh>
+            <mesh position={[0, -0.05, -0.22]} rotation={[0.2, 0, 0]}>
+              <planeGeometry args={[0.9, 0.7]} />
+              <meshStandardMaterial color="#000" emissive={colorConfig.emissive || "#38bdf8"} emissiveIntensity={materialOverrides?.emissiveIntensity || 1} />
+            </mesh>
+          </>
+        );
+      case 'monitor':
+      case 'tv':
+        return (
+          <>
+            <mesh position={[0, 0.1, 0]} castShadow receiveShadow material={material}>
+              <boxGeometry args={[1, 0.8, 0.1]} />
+            </mesh>
+            <mesh position={[0, 0.1, 0.055]}>
+              <planeGeometry args={[0.95, 0.75]} />
+              <meshStandardMaterial color="#000" emissive={colorConfig.emissive || "#38bdf8"} emissiveIntensity={materialOverrides?.emissiveIntensity || 1} />
+            </mesh>
+            <mesh position={[0, -0.2, -0.05]} castShadow receiveShadow material={material}>
+              <cylinderGeometry args={[0.05, 0.05, 0.4, 8]} />
+            </mesh>
+            <mesh position={[0, -0.45, -0.05]} castShadow receiveShadow material={material}>
+              <boxGeometry args={[0.4, 0.05, 0.3]} />
+            </mesh>
+          </>
+        );
+      case 'window':
+        return (
+          <>
+            <mesh castShadow receiveShadow material={material}>
+              <boxGeometry args={[1, 1, 1]} />
+            </mesh>
+            <mesh position={[0, 0, 0.51]}>
+              <planeGeometry args={[0.9, 0.9]} />
+              <meshStandardMaterial color="#bae6fd" transparent opacity={0.4} roughness={0.1} />
+            </mesh>
+          </>
+        );
+      case 'fan':
+      case 'ceiling-fan':
+        return (
+          <>
+            <mesh position={[0, 0.3, 0]} castShadow receiveShadow material={material}>
+              <cylinderGeometry args={[0.05, 0.05, 0.4, 8]} />
+            </mesh>
+            <mesh position={[0, 0.05, 0]} castShadow receiveShadow material={material}>
+              <cylinderGeometry args={[0.2, 0.2, 0.15, 16]} />
+            </mesh>
+            <mesh position={[0, 0.05, 0]} castShadow receiveShadow material={material}>
+              <boxGeometry args={[1, 0.02, 0.15]} />
+            </mesh>
+            <mesh position={[0, 0.05, 0]} rotation={[0, Math.PI/2, 0]} castShadow receiveShadow material={material}>
+              <boxGeometry args={[1, 0.02, 0.15]} />
+            </mesh>
+          </>
+        );
+      default:
+        return (
+          <mesh castShadow receiveShadow material={material}>
+            <boxGeometry args={[1, 1, 1]} />
+          </mesh>
+        );
+    }
+  };
+
   return (
-    <mesh
-      ref={meshRef}
+    <group
+      ref={groupRef}
       position={object.position}
       rotation={object.rotation}
       scale={object.scale}
-      castShadow
-      receiveShadow
       onPointerOver={() => { setHovered(true); hapticFeedback('selection'); }}
       onPointerOut={() => setHovered(false)}
       onClick={onClick}
     >
-      <primitive object={geometry} />
-      <primitive object={material} />
+      {renderDetailedObject()}
       {hovered && (
-        <primitive object={new THREE.BoxGeometry(object.scale[0] * 1.02, object.scale[1] * 1.02, object.scale[2] * 1.02)} >
-          <primitive object={new THREE.MeshBasicMaterial({ color: '#e94560', transparent: true, opacity: 0.1, side: THREE.BackSide })} />
-        </primitive>
+        <mesh>
+          <boxGeometry args={[1.05, 1.05, 1.05]} />
+          <meshBasicMaterial color="#e94560" transparent opacity={0.15} side={THREE.BackSide} />
+        </mesh>
       )}
-    </mesh>
+    </group>
   );
 }
 
