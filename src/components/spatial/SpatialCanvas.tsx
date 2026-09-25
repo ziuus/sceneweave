@@ -358,7 +358,6 @@ function SpatialCanvasInner({
   onTransitionComplete,
   className = ''
 }: SpatialCanvasProps) {
-  const { viewport } = useThree();
   const mobile = isMobile();
   
   const defaultCamera: CameraPreset = useMemo(() => ({
