@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState, useMemo, Suspense } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Canvas, useFrame, useThree, useLoader } from '@react-three/fiber';
 import { 
   OrbitControls, 
   Environment, 
@@ -11,7 +11,7 @@ import {
 } from '@react-three/drei';
 import * as THREE from 'three';
 import { motion } from 'framer-motion';
-import { SceneAnalysis, Surface, DetectedObject, EnvironmentModifications, CameraPreset } from '@/lib/scene/types';
+import { SceneAnalysis, Surface, DetectedObject, EnvironmentModifications, CameraPreset, CapturedInput } from '@/lib/scene/types';
 import { useApp } from '@/lib/store/AppContext';
 import { isMobile, hapticFeedback } from '@/lib/utils/mobile';
 import { lerp, lerpVec3, easeInOutCubic } from '@/lib/utils/transitions';
@@ -491,9 +491,25 @@ function CameraController({
   
   return null;
 }
+function PanoramaBackground({ capturedInput }: { capturedInput?: CapturedInput }) {
+  if (!capturedInput || capturedInput.type !== 'file') return null;
+  // Load the base64 texture
+  const texture = useLoader(THREE.TextureLoader, capturedInput.data);
+  // Ensure it's mapped correctly for equirectangular
+  texture.mapping = THREE.EquirectangularReflectionMapping;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  
+  return (
+    <mesh>
+      <sphereGeometry args={[100, 64, 64]} />
+      <meshBasicMaterial map={texture} side={THREE.BackSide} />
+    </mesh>
+  );
+}
 
 interface SpatialCanvasProps {
   scene: SceneAnalysis;
+  capturedInput?: CapturedInput;
   environmentMods?: EnvironmentModifications;
   cameraPreset?: CameraPreset;
   isTransitioning?: boolean;
@@ -502,7 +518,8 @@ interface SpatialCanvasProps {
 }
 
 function SpatialCanvasInner({ 
-  scene, 
+  scene,
+  capturedInput,
   environmentMods, 
   cameraPreset,
   isTransitioning = false,
@@ -550,6 +567,7 @@ function SpatialCanvasInner({
         }} scene={scene} />
         
         <Suspense fallback={null}>
+          <PanoramaBackground capturedInput={capturedInput} />
           <Environment 
             preset="warehouse" 
             background={false} 
