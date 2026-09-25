@@ -26,6 +26,7 @@ export default function HomePage() {
     setMode,
     setTransitioning,
     isDemo,
+    error,
     setError,
   } = useApp();
   
