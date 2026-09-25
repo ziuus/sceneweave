@@ -51,49 +51,27 @@ const OBJECT_COLORS: Record<string, { color: string; emissive?: string; roughnes
   refrigerator: { color: '#cbd5e1', roughness: 0.3, metalness: 0.5 },
 };
 
-function SurfaceMesh({ surface, materialOverrides }: { surface: Surface; materialOverrides?: Partial<THREE.MeshStandardMaterialParameters> }) {
+function SurfaceMesh({ surface, materialOverrides, hasPanorama }: { surface: Surface; materialOverrides?: Partial<THREE.MeshStandardMaterialParameters>; hasPanorama?: boolean }) {
   const [width, height] = surface.dimensions;
   const geometry = useMemo(() => new THREE.PlaneGeometry(width, height, 1, 1), [width, height]);
   
-  const material = useMemo(() => {
-    const baseMaterial: THREE.MeshStandardMaterialParameters = {
-      color: surface.material.color,
-      roughness: surface.material.roughness,
-      metalness: surface.material.metalness,
-      side: THREE.FrontSide,
-    };
-    
-    if (surface.material.emissive) {
-      baseMaterial.emissive = new THREE.Color(surface.material.emissive);
-      baseMaterial.emissiveIntensity = surface.material.emissiveIntensity || 0;
+      const material = useMemo(() => {
+    if (hasPanorama) {
+      const baseMat = new THREE.MeshStandardMaterial({
+        color: '#4a90e2',
+        transparent: true,
+        opacity: 0.15,
+        depthWrite: false,
+        roughness: 0.1,
+        metalness: 0.8,
+        wireframe: true,
+        ...materialOverrides,
+      });
+      if (materialOverrides?.emissive) {
+        baseMat.emissive = new THREE.Color(materialOverrides.emissive);
+      }
+      return baseMat;
     }
-    
-    return new THREE.MeshStandardMaterial({ ...baseMaterial, ...materialOverrides });
-  }, [surface.material.color, surface.material.roughness, surface.material.metalness, surface.material.emissive, surface.material.emissiveIntensity, materialOverrides]);
-  
-  return (
-    <mesh
-      position={surface.position}
-      rotation={surface.rotation}
-      receiveShadow
-      castShadow={surface.type !== 'floor'}
-    >
-      <primitive object={geometry} />
-      <primitive object={material} />
-    </mesh>
-  );
-}
-
-function ProceduralObject({ object, materialOverrides, onClick }: { 
-  object: DetectedObject; 
-  materialOverrides?: Partial<THREE.MeshStandardMaterialParameters>;
-  onClick?: () => void;
-}) {
-  const groupRef = useRef<THREE.Group>(null);
-  const [hovered, setHovered] = useState(false);
-  const colorConfig = OBJECT_COLORS[object.type] || { color: '#2a2a2a' };
-  
-  const material = useMemo(() => {
     const mat = new THREE.MeshStandardMaterial({
       color: colorConfig.color,
       roughness: colorConfig.roughness ?? 0.7,
@@ -105,7 +83,7 @@ function ProceduralObject({ object, materialOverrides, onClick }: {
       mat.emissiveIntensity = 0;
     }
     return mat;
-  }, [colorConfig, materialOverrides]);
+  }, [colorConfig, materialOverrides, hasPanorama]);
 
   useFrame(() => {
     if (materialOverrides?.emissiveIntensity !== undefined && material.emissive) {
@@ -121,7 +99,7 @@ function ProceduralObject({ object, materialOverrides, onClick }: {
             {/* Bed frame */}
             <mesh position={[0, -0.25, 0]} castShadow receiveShadow>
               <boxGeometry args={[1, 0.5, 1]} />
-              <meshStandardMaterial color="#5c3a21" roughness={0.7} />
+              {hasPanorama ? <primitive object={material} attach="material" /> : <meshStandardMaterial color="#5c3a21" roughness={0.7} />}
             </mesh>
             {/* Mattress */}
             <mesh position={[0, 0.1, 0]} castShadow receiveShadow material={material}>
@@ -130,7 +108,7 @@ function ProceduralObject({ object, materialOverrides, onClick }: {
             {/* Pillow */}
             <mesh position={[0, 0.25, -0.35]} castShadow receiveShadow>
               <boxGeometry args={[0.6, 0.1, 0.2]} />
-              <meshStandardMaterial color="#ffffff" roughness={0.9} />
+              {hasPanorama ? <primitive object={material} attach="material" /> : <meshStandardMaterial color="#ffffff" roughness={0.9} />}
             </mesh>
           </>
         );
@@ -169,20 +147,20 @@ function ProceduralObject({ object, materialOverrides, onClick }: {
             {/* Doors */}
             <mesh position={[-0.25, 0, 0.505]} castShadow receiveShadow>
               <boxGeometry args={[0.48, 0.96, 0.01]} />
-              <meshStandardMaterial color={colorConfig.color} roughness={0.8} />
+              {hasPanorama ? <primitive object={material} attach="material" /> : <meshStandardMaterial color={colorConfig.color} roughness={0.8} />}
             </mesh>
             <mesh position={[0.25, 0, 0.505]} castShadow receiveShadow>
               <boxGeometry args={[0.48, 0.96, 0.01]} />
-              <meshStandardMaterial color={colorConfig.color} roughness={0.8} />
+              {hasPanorama ? <primitive object={material} attach="material" /> : <meshStandardMaterial color={colorConfig.color} roughness={0.8} />}
             </mesh>
             {/* Handles */}
             <mesh position={[-0.05, 0, 0.52]} castShadow receiveShadow>
               <cylinderGeometry args={[0.02, 0.02, 0.15, 8]} />
-              <meshStandardMaterial color="#aaaaaa" metalness={0.8} roughness={0.2} />
+              {hasPanorama ? <primitive object={material} attach="material" /> : <meshStandardMaterial color="#aaaaaa" metalness={0.8} roughness={0.2} />}
             </mesh>
             <mesh position={[0.05, 0, 0.52]} castShadow receiveShadow>
               <cylinderGeometry args={[0.02, 0.02, 0.15, 8]} />
-              <meshStandardMaterial color="#aaaaaa" metalness={0.8} roughness={0.2} />
+              {hasPanorama ? <primitive object={material} attach="material" /> : <meshStandardMaterial color="#aaaaaa" metalness={0.8} roughness={0.2} />}
             </mesh>
           </>
         );
@@ -201,16 +179,16 @@ function ProceduralObject({ object, materialOverrides, onClick }: {
             {/* Base column */}
             <mesh position={[0, -0.3, 0]} castShadow receiveShadow>
               <cylinderGeometry args={[0.08, 0.08, 0.4, 8]} />
-              <meshStandardMaterial color="#222" metalness={0.5} roughness={0.5} />
+              {hasPanorama ? <primitive object={material} attach="material" /> : <meshStandardMaterial color="#222" metalness={0.5} roughness={0.5} />}
             </mesh>
             {/* Base legs */}
             <mesh position={[0, -0.45, 0]} castShadow receiveShadow>
               <boxGeometry args={[0.9, 0.1, 0.1]} />
-              <meshStandardMaterial color="#222" metalness={0.5} roughness={0.5} />
+              {hasPanorama ? <primitive object={material} attach="material" /> : <meshStandardMaterial color="#222" metalness={0.5} roughness={0.5} />}
             </mesh>
             <mesh position={[0, -0.45, 0]} rotation={[0, Math.PI/2, 0]} castShadow receiveShadow>
               <boxGeometry args={[0.9, 0.1, 0.1]} />
-              <meshStandardMaterial color="#222" metalness={0.5} roughness={0.5} />
+              {hasPanorama ? <primitive object={material} attach="material" /> : <meshStandardMaterial color="#222" metalness={0.5} roughness={0.5} />}
             </mesh>
           </>
         );
@@ -225,7 +203,7 @@ function ProceduralObject({ object, materialOverrides, onClick }: {
             </mesh>
             <mesh position={[0, -0.05, -0.22]} rotation={[0.2, 0, 0]}>
               <planeGeometry args={[0.9, 0.7]} />
-              <meshStandardMaterial color="#000" emissive={colorConfig.emissive || "#38bdf8"} emissiveIntensity={materialOverrides?.emissiveIntensity || 1} />
+              {hasPanorama ? <primitive object={material} attach="material" /> : <meshStandardMaterial color="#000" emissive={colorConfig.emissive || "#38bdf8"} emissiveIntensity={materialOverrides?.emissiveIntensity || 1} />}
             </mesh>
           </>
         );
@@ -238,7 +216,7 @@ function ProceduralObject({ object, materialOverrides, onClick }: {
             </mesh>
             <mesh position={[0, 0.1, 0.055]}>
               <planeGeometry args={[0.95, 0.75]} />
-              <meshStandardMaterial color="#000" emissive={colorConfig.emissive || "#38bdf8"} emissiveIntensity={materialOverrides?.emissiveIntensity || 1} />
+              {hasPanorama ? <primitive object={material} attach="material" /> : <meshStandardMaterial color="#000" emissive={colorConfig.emissive || "#38bdf8"} emissiveIntensity={materialOverrides?.emissiveIntensity || 1} />}
             </mesh>
             <mesh position={[0, -0.2, -0.05]} castShadow receiveShadow material={material}>
               <cylinderGeometry args={[0.05, 0.05, 0.4, 8]} />
@@ -256,7 +234,7 @@ function ProceduralObject({ object, materialOverrides, onClick }: {
             </mesh>
             <mesh position={[0, 0, 0.51]}>
               <planeGeometry args={[0.9, 0.9]} />
-              <meshStandardMaterial color="#bae6fd" transparent opacity={0.4} roughness={0.1} />
+              {hasPanorama ? <primitive object={material} attach="material" /> : <meshStandardMaterial color="#bae6fd" transparent opacity={0.4} roughness={0.1} />}
             </mesh>
           </>
         );
@@ -310,10 +288,12 @@ function ProceduralObject({ object, materialOverrides, onClick }: {
 
 function Room({ 
   scene, 
-  environmentMods 
+  environmentMods,
+  hasPanorama = false
 }: { 
   scene: SceneAnalysis; 
   environmentMods?: EnvironmentModifications;
+  hasPanorama?: boolean;
 }) {
   return (
     <group>
@@ -330,6 +310,7 @@ function Room({
               opacity: mod.opacity,
               transparent: mod.opacity !== undefined && mod.opacity < 1,
             } : undefined}
+            hasPanorama={hasPanorama}
           />
         );
       })}
@@ -347,6 +328,7 @@ function Room({
               opacity: mod.opacity,
               transparent: mod.opacity !== undefined && mod.opacity < 1,
             } : undefined}
+            hasPanorama={hasPanorama}
           />
         );
       })}
@@ -502,7 +484,7 @@ function PanoramaBackground({ capturedInput }: { capturedInput?: CapturedInput }
   return (
     <mesh>
       <sphereGeometry args={[100, 64, 64]} />
-      <meshBasicMaterial map={texture} side={THREE.BackSide} />
+      <meshStandardMaterial map={texture} side={THREE.BackSide} roughness={1} metalness={0} />
     </mesh>
   );
 }
@@ -575,7 +557,7 @@ function SpatialCanvasInner({
           />
         </Suspense>
         
-        <Room scene={scene} environmentMods={environmentMods} />
+        <Room scene={scene} environmentMods={environmentMods} hasPanorama={capturedInput?.type === 'file'} />
         
         <ContactShadows 
           opacity={0.3} 

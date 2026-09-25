@@ -19,13 +19,12 @@ export async function getAIProvider(): Promise<AIProvider> {
 }
 
 export async function analyzeScene(imageData: string, inputType: AIInputType = 'photo'): Promise<SceneAnalysis> {
-  try {
-    const provider = await getAIProvider();
-    return await provider.analyzeScene(imageData, inputType);
-  } catch (error) {
-    console.error('Scene analysis failed, falling back to mock:', error);
+  if (inputType === 'demo') {
     return mockAIProvider.analyzeScene(imageData, inputType);
   }
+  
+  const provider = await getAIProvider();
+  return await provider.analyzeScene(imageData, inputType);
 }
 
 export async function interpretIntent(input: string, scene?: SceneAnalysis): Promise<string> {

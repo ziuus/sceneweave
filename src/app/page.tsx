@@ -38,11 +38,10 @@ export default function HomePage() {
         try {
           const analysis = await analyzeScene(capturedInput.data, capturedInput.type);
           setSceneAnalysis(analysis);
-        } catch (err) {
+        } catch (err: any) {
           console.error(err);
-          setError('Failed to analyze scene. Using demo scene.');
-          const demoAnalysis = getDemoSceneAnalysis();
-          setSceneAnalysis(demoAnalysis);
+          setError(err.message || 'Failed to analyze scene.');
+          setStage('capture');
         }
       };
       runAnalysis();
