@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect, useState, useMemo } from 'react';
+import React, { useRef, useEffect, useState, useMemo, Suspense } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { 
   OrbitControls, 
@@ -398,11 +398,13 @@ function SpatialCanvasInner({
           effects: { vignette: 0.3, bloom: 0.1, chromaticAberration: 0 },
         }} scene={scene} />
         
-        <Environment 
-          preset="warehouse" 
-          background={false} 
-          resolution={256}
-        />
+        <Suspense fallback={null}>
+          <Environment 
+            preset="warehouse" 
+            background={false} 
+            resolution={256}
+          />
+        </Suspense>
         
         <Room scene={scene} environmentMods={environmentMods} />
         
