@@ -8,48 +8,60 @@ type AIInputType = InputType;
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
 
-const SCENE_ANALYSIS_PROMPT = `You are a spatial AI that analyzes photos and returns a detailed structured scene understanding.
+const SCENE_ANALYSIS_PROMPT = `You are a spatial AI that analyzes interior room photos (including panoramas) and extracts precise 3D spatial data.
 
 CRITICAL INSTRUCTIONS:
-1. If the image is NOT an interior room (e.g., it is a car, landscape, animal, or exterior), set "roomType" to "unknown" and return EMPTY arrays for "surfaces" and "objects". Do not invent walls or desks.
-2. DO NOT just copy the example JSON structure. Build the arrays based ONLY on what you actually see.
+1. This may be an equirectangular panorama (wide/fisheye/360° photo). If so, mentally "unfold" it — the full horizontal width = 360° around the room. Objects on the far left and far right of a panorama may be the same wall.
+2. If the image is NOT an interior room (car, landscape, animal, exterior), set "roomType" to "unknown" and return EMPTY arrays.
+3. Extract ONLY what you actually see. Do NOT copy the example schema values.
+4. All coordinates use a right-handed 3D coordinate system: origin at room center, Y is up, floor at Y=0, +Z = toward camera, -Z = away from camera.
 
-Analyze the provided image and return a JSON object with this exact structure (this is just a schema example, replace with actual detected data):
+COORDINATE GUIDELINES:
+- Room width: X axis. Left wall at X = -(width/2), right wall at X = +(width/2)
+- Room depth: Z axis. Back wall at Z = -(depth/2), front wall at Z = +(depth/2)  
+- Floor at Y=0, ceiling at Y=height
+- Furniture sits ON the floor: Y = object_height/2
+- Typical room: width 3-5m, depth 4-6m, height 2.5-3m
+- Wall thickness: ignore, treat walls as flat planes
 
+SURFACE ROTATIONS (these are fixed — always use these exact rotations):
+- floor: rotation [-1.5708, 0, 0] (i.e. -PI/2 on X)
+- ceiling: rotation [1.5708, 0, 0] (i.e. +PI/2 on X)
+- back wall (facing camera): rotation [0, 0, 0]
+- left wall (facing right): rotation [0, 1.5708, 0]
+- right wall (facing left): rotation [0, -1.5708, 0]
+
+Return ONLY this JSON (no markdown, no extra text):
 {
-  "roomType": "office|bedroom|living|studio|kitchen|unknown",
+  "roomType": "bedroom|office|living|studio|kitchen|unknown",
   "dimensions": { "width": number, "depth": number, "height": number },
   "surfaces": [
-    { "id": "floor", "type": "floor", "position": [x,y,z], "rotation": [rx,ry,rz], "dimensions": [w,h], "material": { "color": "hex", "roughness": 0-1, "metalness": 0-1 } }
+    { "id": "floor", "type": "floor", "position": [0, 0, 0], "rotation": [-1.5708, 0, 0], "dimensions": [width, depth], "material": { "color": "#hexcolor", "roughness": 0.8, "metalness": 0.0 } },
+    { "id": "ceiling", "type": "ceiling", "position": [0, height, 0], "rotation": [1.5708, 0, 0], "dimensions": [width, depth], "material": { "color": "#hexcolor", "roughness": 0.9, "metalness": 0.0 } },
+    { "id": "wall-back", "type": "wall", "position": [0, height/2, -(depth/2)], "rotation": [0, 0, 0], "dimensions": [width, height], "material": { "color": "#hexcolor", "roughness": 0.9, "metalness": 0.0 } },
+    { "id": "wall-left", "type": "wall", "position": [-(width/2), height/2, 0], "rotation": [0, 1.5708, 0], "dimensions": [depth, height], "material": { "color": "#hexcolor", "roughness": 0.9, "metalness": 0.0 } },
+    { "id": "wall-right", "type": "wall", "position": [width/2, height/2, 0], "rotation": [0, -1.5708, 0], "dimensions": [depth, height], "material": { "color": "#hexcolor", "roughness": 0.9, "metalness": 0.0 } }
   ],
   "objects": [
-    { "id": "obj-1", "type": "desk|bed|chair|sofa|monitor|car|etc", "category": "furniture|vehicle|other", "position": [x,y,z], "rotation": [rx,ry,rz], "scale": [x,y,z], "boundingBox": { "min": [x,y,z], "max": [x,y,z] }, "confidence": 0-1, "attributes": {} }
+    { "id": "bed", "type": "bed", "category": "furniture", "position": [X, Y, Z], "rotation": [0, 0, 0], "scale": [width, height, depth], "boundingBox": { "min": [-w/2, 0, -d/2], "max": [w/2, h, d/2] }, "confidence": 0.9, "attributes": {} }
   ],
   "lighting": {
     "type": "natural|artificial|mixed",
     "colorTemperature": 4000,
-    "intensity": 0.5,
-    "direction": [0,-1,0],
-    "sources": []
+    "intensity": 0.7,
+    "direction": [0, -1, 0],
+    "sources": [{ "type": "window|ceiling|lamp", "position": [X, Y, Z], "intensity": 0.8, "color": "#ffffff" }]
   },
-  "colorPalette": ["hex1", "hex2"],
+  "colorPalette": ["#hex1", "#hex2", "#hex3"],
   "spatialFeatures": {
-    "hasDesk": boolean,
-    "hasChair": boolean,
-    "hasWindow": boolean,
-    "hasMonitor": boolean,
-    "hasWhiteboard": boolean,
-    "focalPoint": [x,y,z]
+    "hasDesk": false,
+    "hasChair": false,
+    "hasWindow": false,
+    "hasMonitor": false,
+    "hasWhiteboard": false,
+    "focalPoint": [0, 1, 0]
   }
-}
-
-Guidelines:
-- Use meters for dimensions (typical room: 3-6m wide, 3-6m deep, 2.5-3m high)
-- Position origin at room center, floor at y=0
-- Detect major furniture: desk, chair, bed, sofa, table, monitor, laptop, lamp, plant, bookshelf, whiteboard
-- For panoramas, understand the 360° view; for regular photos, infer the room layout
-- Be conservative with confidence scores
-- Return ONLY valid JSON, no extra text`;
+}`;
 
 async function callGeminiVision(apiKey: string, imageData: string, prompt: string): Promise<any> {
   const genAI = new GoogleGenerativeAI(apiKey);
