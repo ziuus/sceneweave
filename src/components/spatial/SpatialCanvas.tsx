@@ -55,7 +55,58 @@ function SurfaceMesh({ surface, materialOverrides, hasPanorama }: { surface: Sur
   const [width, height] = surface.dimensions;
   const geometry = useMemo(() => new THREE.PlaneGeometry(width, height, 1, 1), [width, height]);
   
-      const material = useMemo(() => {
+  const material = useMemo(() => {
+    const baseMaterial: THREE.MeshStandardMaterialParameters = {
+      color: surface.material.color,
+      roughness: surface.material.roughness,
+      metalness: surface.material.metalness,
+      side: THREE.FrontSide,
+    };
+    
+    if (surface.material.emissive) {
+      baseMaterial.emissive = new THREE.Color(surface.material.emissive);
+      baseMaterial.emissiveIntensity = surface.material.emissiveIntensity || 0;
+    }
+    
+    return new THREE.MeshStandardMaterial({ ...baseMaterial, ...materialOverrides });
+  }, [surface.material.color, surface.material.roughness, surface.material.metalness, surface.material.emissive, surface.material.emissiveIntensity, materialOverrides]);
+  
+  if (hasPanorama) {
+    if (surface.type === 'floor') {
+      return (
+        <mesh position={surface.position} rotation={surface.rotation} receiveShadow>
+          <primitive object={geometry} />
+          <shadowMaterial opacity={0.3} />
+        </mesh>
+      );
+    }
+    return null;
+  }
+
+  return (
+    <mesh
+      position={surface.position}
+      rotation={surface.rotation}
+      receiveShadow
+      castShadow={surface.type !== 'floor'}
+    >
+      <primitive object={geometry} />
+      <primitive object={material} />
+    </mesh>
+  );
+}
+
+function ProceduralObject({ object, materialOverrides, onClick, hasPanorama }: { 
+  object: DetectedObject; 
+  materialOverrides?: Partial<THREE.MeshStandardMaterialParameters>;
+  onClick?: () => void;
+  hasPanorama?: boolean;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+  const [hovered, setHovered] = useState(false);
+  const colorConfig = OBJECT_COLORS[object.type] || { color: '#2a2a2a' };
+  
+  const material = useMemo(() => {
     if (hasPanorama) {
       const baseMat = new THREE.MeshStandardMaterial({
         color: '#4a90e2',
@@ -96,16 +147,13 @@ function SurfaceMesh({ surface, materialOverrides, hasPanorama }: { surface: Sur
       case 'bed':
         return (
           <>
-            {/* Bed frame */}
             <mesh position={[0, -0.25, 0]} castShadow receiveShadow>
               <boxGeometry args={[1, 0.5, 1]} />
               {hasPanorama ? <primitive object={material} attach="material" /> : <meshStandardMaterial color="#5c3a21" roughness={0.7} />}
             </mesh>
-            {/* Mattress */}
             <mesh position={[0, 0.1, 0]} castShadow receiveShadow material={material}>
               <boxGeometry args={[0.95, 0.2, 0.95]} />
             </mesh>
-            {/* Pillow */}
             <mesh position={[0, 0.25, -0.35]} castShadow receiveShadow>
               <boxGeometry args={[0.6, 0.1, 0.2]} />
               {hasPanorama ? <primitive object={material} attach="material" /> : <meshStandardMaterial color="#ffffff" roughness={0.9} />}
@@ -116,11 +164,9 @@ function SurfaceMesh({ surface, materialOverrides, hasPanorama }: { surface: Sur
       case 'table':
         return (
           <>
-            {/* Table top */}
             <mesh position={[0, 0.45, 0]} castShadow receiveShadow material={material}>
               <boxGeometry args={[1, 0.1, 1]} />
             </mesh>
-            {/* Legs */}
             <mesh position={[-0.45, -0.05, -0.45]} castShadow receiveShadow material={material}>
               <cylinderGeometry args={[0.05, 0.05, 0.9, 8]} />
             </mesh>
@@ -140,11 +186,9 @@ function SurfaceMesh({ surface, materialOverrides, hasPanorama }: { surface: Sur
       case 'cupboard':
         return (
           <>
-            {/* Main body */}
             <mesh position={[0, 0, 0]} castShadow receiveShadow material={material}>
               <boxGeometry args={[1, 1, 1]} />
             </mesh>
-            {/* Doors */}
             <mesh position={[-0.25, 0, 0.505]} castShadow receiveShadow>
               <boxGeometry args={[0.48, 0.96, 0.01]} />
               {hasPanorama ? <primitive object={material} attach="material" /> : <meshStandardMaterial color={colorConfig.color} roughness={0.8} />}
@@ -153,7 +197,6 @@ function SurfaceMesh({ surface, materialOverrides, hasPanorama }: { surface: Sur
               <boxGeometry args={[0.48, 0.96, 0.01]} />
               {hasPanorama ? <primitive object={material} attach="material" /> : <meshStandardMaterial color={colorConfig.color} roughness={0.8} />}
             </mesh>
-            {/* Handles */}
             <mesh position={[-0.05, 0, 0.52]} castShadow receiveShadow>
               <cylinderGeometry args={[0.02, 0.02, 0.15, 8]} />
               {hasPanorama ? <primitive object={material} attach="material" /> : <meshStandardMaterial color="#aaaaaa" metalness={0.8} roughness={0.2} />}
@@ -168,20 +211,16 @@ function SurfaceMesh({ surface, materialOverrides, hasPanorama }: { surface: Sur
       case 'office-chair':
         return (
           <>
-            {/* Seat */}
             <mesh position={[0, -0.1, 0]} castShadow receiveShadow material={material}>
               <boxGeometry args={[0.8, 0.1, 0.8]} />
             </mesh>
-            {/* Backrest */}
             <mesh position={[0, 0.25, -0.35]} castShadow receiveShadow material={material}>
               <boxGeometry args={[0.8, 0.6, 0.1]} />
             </mesh>
-            {/* Base column */}
             <mesh position={[0, -0.3, 0]} castShadow receiveShadow>
               <cylinderGeometry args={[0.08, 0.08, 0.4, 8]} />
               {hasPanorama ? <primitive object={material} attach="material" /> : <meshStandardMaterial color="#222" metalness={0.5} roughness={0.5} />}
             </mesh>
-            {/* Base legs */}
             <mesh position={[0, -0.45, 0]} castShadow receiveShadow>
               <boxGeometry args={[0.9, 0.1, 0.1]} />
               {hasPanorama ? <primitive object={material} attach="material" /> : <meshStandardMaterial color="#222" metalness={0.5} roughness={0.5} />}
@@ -285,7 +324,6 @@ function SurfaceMesh({ surface, materialOverrides, hasPanorama }: { surface: Sur
     </group>
   );
 }
-
 function Room({ 
   scene, 
   environmentMods,
