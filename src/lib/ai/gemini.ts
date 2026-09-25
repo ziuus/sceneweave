@@ -6,7 +6,7 @@ import { mockAIProvider } from './mock';
 
 type AIInputType = InputType;
 
-const GEMINI_MODEL = 'gemini-1.5-flash';
+const GEMINI_MODEL = 'gemini-2.5-flash';
 
 const SCENE_ANALYSIS_PROMPT = `You are a spatial AI that analyzes photos and returns a detailed structured scene understanding.
 
