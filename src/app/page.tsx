@@ -31,19 +31,23 @@ export default function HomePage() {
   
   const mobile = isMobile();
   
-  const handleCaptureComplete = useCallback(async (input: CapturedInput) => {
-    setStage('analyzing');
-    
-    try {
-      const analysis = await analyzeScene(input.data, input.type);
-      setSceneAnalysis(analysis);
-    } catch (err) {
-      setError('Failed to analyze scene. Using demo scene.');
-      const demoAnalysis = getDemoSceneAnalysis();
-      setSceneAnalysis(demoAnalysis);
+  useEffect(() => {
+    if (stage === 'analyzing' && capturedInput && !sceneAnalysis) {
+      const runAnalysis = async () => {
+        try {
+          const analysis = await analyzeScene(capturedInput.data, capturedInput.type);
+          setSceneAnalysis(analysis);
+        } catch (err) {
+          console.error(err);
+          setError('Failed to analyze scene. Using demo scene.');
+          const demoAnalysis = getDemoSceneAnalysis();
+          setSceneAnalysis(demoAnalysis);
+        }
+      };
+      runAnalysis();
     }
-  }, [setStage, setSceneAnalysis, setError]);
-  
+  }, [stage, capturedInput, sceneAnalysis, setSceneAnalysis, setError]);
+
   useEffect(() => {
     if (stage === 'spatial' && sceneAnalysis && workspaceState.currentMode) {
       if (!workspaceState.config || workspaceState.config.mode !== workspaceState.currentMode) {
@@ -85,6 +89,24 @@ export default function HomePage() {
                 No account needed • Works offline • Privacy first
               </p>
             </motion.div>
+          </motion.div>
+        )}
+        
+        {stage === 'analyzing' && !sceneAnalysis && (
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-bg-primary px-4"
+          >
+             <div className="flex flex-col items-center gap-4">
+               <motion.div
+                 className="w-12 h-12 border-4 border-accent-primary border-t-transparent rounded-full"
+                 animate={{ rotate: 360 }}
+                 transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+               />
+               <p className="text-text-secondary font-medium">Analyzing with Gemini Vision...</p>
+             </div>
           </motion.div>
         )}
         
