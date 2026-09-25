@@ -13,35 +13,29 @@ function createBaseEnvironment(scene: SceneAnalysis, mode: string): EnvironmentM
   
   return {
     lighting: {
-      ambientIntensity: 0.3,
-      ambientColor: '#1a1a2e',
-      keyLightIntensity: 0.8,
-      keyLightColor: color,
-      keyLightPosition: [focalPoint[0], focalPoint[1] + 1.5, focalPoint[2] - 1],
+      ambientIntensity: 0.8,
+      ambientColor: '#ffffff',
+      keyLightIntensity: 1.2,
+      keyLightColor: '#ffffff',
+      keyLightPosition: [focalPoint[0], focalPoint[1] + 3.0, focalPoint[2] + 2],
       accentLights: [
         {
-          position: [focalPoint[0] - 1.5, focalPoint[1] + 1, focalPoint[2] - 1],
-          color: '#00d4aa',
-          intensity: 0.3,
-          type: 'point',
-        },
-        {
-          position: [focalPoint[0] + 1.5, focalPoint[1] + 1, focalPoint[2] - 1],
-          color: '#ffd700',
-          intensity: 0.3,
+          position: [focalPoint[0] - 2, focalPoint[1] + 2, focalPoint[2] - 1],
+          color: color,
+          intensity: 0.5,
           type: 'point',
         },
       ],
       fog: {
         color: '#0a0a0f',
-        density: 0.02,
+        density: 0.005,
       },
     },
     materials: [],
     camera: {
-      position: [focalPoint[0], focalPoint[1] + 1.2, focalPoint[2] + 2.5],
-      target: focalPoint,
-      fov: 60,
+      position: [focalPoint[0], focalPoint[1] + 2.0, focalPoint[2] + 4.0],
+      target: [focalPoint[0], focalPoint[1] + 0.5, focalPoint[2] - 0.5],
+      fov: 65,
       transitionDuration: 1.5,
     },
     effects: {

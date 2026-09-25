@@ -26,29 +26,29 @@ const ROOM_COLORS = {
 
 const OBJECT_COLORS: Record<string, { color: string; emissive?: string; roughness?: number; metalness?: number }> = {
   // Bedroom
-  bed: { color: '#8B4513', roughness: 0.8 },
-  wardrobe: { color: '#3d2b1f', roughness: 0.9 },
-  cupboard: { color: '#3d2b1f', roughness: 0.9 },
-  almirah: { color: '#3d2b1f', roughness: 0.9 },
-  chair: { color: '#2a2a2a', roughness: 0.8 },
-  table: { color: '#5c3d1e', roughness: 0.7 },
-  window: { color: '#a8d8ea', emissive: '#a8d8ea', roughness: 0.1, metalness: 0.2 },
-  fan: { color: '#aaaaaa', roughness: 0.4, metalness: 0.6 },
-  // Office
-  desk: { color: '#5c3d1e', roughness: 0.7 },
-  'office-chair': { color: '#1a1a1a', roughness: 0.8 },
-  monitor: { color: '#0d1a2a', emissive: '#4a9eff', roughness: 0.2 },
-  laptop: { color: '#2a2a2a', emissive: '#4a9eff', roughness: 0.3 },
-  'desk-lamp': { color: '#ccaa55', emissive: '#ffd700', roughness: 0.3 },
-  plant: { color: '#2d5a1b', roughness: 0.9 },
-  bookshelf: { color: '#4a2f1a', roughness: 0.8 },
-  whiteboard: { color: '#f0f0f0', roughness: 0.3 },
-  keyboard: { color: '#333333', roughness: 0.7 },
-  mouse: { color: '#333333', roughness: 0.7 },
-  'coffee-mug': { color: '#a0522d', roughness: 0.6 },
-  sofa: { color: '#4a3728', roughness: 0.9 },
-  tv: { color: '#111111', emissive: '#2244aa', roughness: 0.2 },
-  refrigerator: { color: '#dddddd', roughness: 0.3, metalness: 0.5 },
+  bed: { color: '#c85a2b', roughness: 0.85, metalness: 0.05 }, // Warm mattress / bed cover
+  'bed-frame': { color: '#5c3a21', roughness: 0.7, metalness: 0.1 },
+  wardrobe: { color: '#2b231d', roughness: 0.6, metalness: 0.15 }, // Dark wood/metal closet
+  cupboard: { color: '#2b231d', roughness: 0.6, metalness: 0.15 },
+  almirah: { color: '#26292b', roughness: 0.4, metalness: 0.35 },
+  chair: { color: '#222222', roughness: 0.6, metalness: 0.3 },
+  'office-chair': { color: '#1c1c1e', roughness: 0.7, metalness: 0.2 },
+  table: { color: '#c68b59', roughness: 0.6, metalness: 0.05 }, // Warm study desk
+  desk: { color: '#c68b59', roughness: 0.6, metalness: 0.05 },
+  window: { color: '#e0f2fe', emissive: '#bae6fd', roughness: 0.1, metalness: 0.1 },
+  fan: { color: '#e2e8f0', roughness: 0.5, metalness: 0.3 },
+  'ceiling-fan': { color: '#e2e8f0', roughness: 0.5, metalness: 0.3 },
+  // Electronics & accessories
+  monitor: { color: '#0f172a', emissive: '#38bdf8', roughness: 0.2, metalness: 0.5 },
+  laptop: { color: '#334155', emissive: '#38bdf8', roughness: 0.3, metalness: 0.6 },
+  tv: { color: '#020617', emissive: '#60a5fa', roughness: 0.15, metalness: 0.7 },
+  'desk-lamp': { color: '#fbbf24', emissive: '#f59e0b', roughness: 0.3, metalness: 0.4 },
+  plant: { color: '#15803d', roughness: 0.9, metalness: 0.0 },
+  bookshelf: { color: '#451a03', roughness: 0.8, metalness: 0.05 },
+  whiteboard: { color: '#f8fafc', roughness: 0.2, metalness: 0.1 },
+  sofa: { color: '#64748b', roughness: 0.9, metalness: 0.0 },
+  couch: { color: '#64748b', roughness: 0.9, metalness: 0.0 },
+  refrigerator: { color: '#cbd5e1', roughness: 0.3, metalness: 0.5 },
 };
 
 function SurfaceMesh({ surface, materialOverrides }: { surface: Surface; materialOverrides?: Partial<THREE.MeshStandardMaterialParameters> }) {
@@ -94,48 +94,53 @@ function ProceduralObject({ object, materialOverrides, onClick }: {
   const colorConfig = OBJECT_COLORS[object.type] || { color: '#2a2a2a' };
   
   const geometry = useMemo(() => {
-    const [w, h, d] = object.scale;
     switch (object.type) {
-      // Bedroom
+      // Bedroom & Living
       case 'bed':
-        return new THREE.BoxGeometry(w, h, d);
+        // Bed base / frame
+        return new THREE.BoxGeometry(1, 1, 1);
       case 'wardrobe':
       case 'cupboard':
       case 'almirah':
-        return new THREE.BoxGeometry(w, h, d);
+        return new THREE.BoxGeometry(1, 1, 1);
       case 'chair':
       case 'office-chair':
-        return new THREE.CylinderGeometry(w * 0.5, w * 0.4, h, 8);
+        return new THREE.CylinderGeometry(0.35, 0.3, 1, 12);
       case 'sofa':
-        return new THREE.BoxGeometry(w, h, d);
+      case 'couch':
+        return new THREE.BoxGeometry(1, 1, 1);
       case 'table':
       case 'desk':
-        return new THREE.BoxGeometry(w, h, d);
+        return new THREE.BoxGeometry(1, 1, 1);
       case 'monitor':
       case 'tv':
-        return new THREE.BoxGeometry(w, h, 0.05);
+        return new THREE.BoxGeometry(1, 1, 0.08);
       case 'laptop':
-        return new THREE.BoxGeometry(w, h * 0.5, d);
+        return new THREE.BoxGeometry(1, 0.25, 0.8);
       case 'fan':
-        return new THREE.CylinderGeometry(w, w, 0.05, 16);
+      case 'ceiling-fan':
+        // A compact central hub with subtle rotor disc
+        return new THREE.CylinderGeometry(0.5, 0.5, 0.06, 16);
       case 'desk-lamp':
-        return new THREE.CylinderGeometry(w * 0.3, w * 0.5, h, 6);
+        return new THREE.CylinderGeometry(0.2, 0.35, 1, 8);
       case 'plant':
-        return new THREE.ConeGeometry(w * 0.5, h, 6);
+        return new THREE.ConeGeometry(0.4, 1, 8);
       case 'bookshelf':
-        return new THREE.BoxGeometry(w, h, d);
+        return new THREE.BoxGeometry(1, 1, 1);
+      case 'window':
+        return new THREE.BoxGeometry(1, 1, 0.05);
       case 'whiteboard':
-        return new THREE.BoxGeometry(w, h, 0.03);
+        return new THREE.BoxGeometry(1, 1, 0.04);
       case 'keyboard':
-        return new THREE.BoxGeometry(w, 0.03, d);
+        return new THREE.BoxGeometry(1, 0.06, 0.4);
       case 'mouse':
-        return new THREE.BoxGeometry(w, 0.03, d);
+        return new THREE.BoxGeometry(0.3, 0.1, 0.5);
       case 'coffee-mug':
-        return new THREE.CylinderGeometry(w * 0.4, w * 0.4, h, 8);
+        return new THREE.CylinderGeometry(0.2, 0.2, 0.4, 12);
       default:
-        return new THREE.BoxGeometry(object.scale[0], object.scale[1], object.scale[2]);
+        return new THREE.BoxGeometry(1, 1, 1);
     }
-  }, [object.type, object.scale]);
+  }, [object.type]);
   
   const material = useMemo(() => {
     const mat = new THREE.MeshStandardMaterial({

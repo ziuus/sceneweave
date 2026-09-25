@@ -8,58 +8,52 @@ type AIInputType = InputType;
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
 
-const SCENE_ANALYSIS_PROMPT = `You are a spatial AI that analyzes interior room photos (including panoramas) and extracts precise 3D spatial data.
+const SCENE_ANALYSIS_PROMPT = `You are a spatial AI that analyzes interior room photos (including wide-angle panoramas) and extracts precise 3D spatial data.
 
 CRITICAL INSTRUCTIONS:
-1. This may be an equirectangular panorama (wide/fisheye/360° photo). If so, mentally "unfold" it — the full horizontal width = 360° around the room. Objects on the far left and far right of a panorama may be the same wall.
-2. If the image is NOT an interior room (car, landscape, animal, exterior), set "roomType" to "unknown" and return EMPTY arrays.
-3. Extract ONLY what you actually see. Do NOT copy the example schema values.
-4. All coordinates use a right-handed 3D coordinate system: origin at room center, Y is up, floor at Y=0, +Z = toward camera, -Z = away from camera.
+1. This is an interior panorama. Understand the 360-degree layout:
+   - Identify walls, windows, floor, ceiling, and all furniture (beds, study tables, chairs, almirahs/wardrobes, window frames, fans, monitors).
+   - If there is a ceiling fan, its diameter is at most 1.0m to 1.2m, height 0.2m, and sits close to the ceiling (Y = height - 0.2). DO NOT give it a huge 3m scale.
+   - Beds are typically length ~1.9m to 2.0m, width 0.9m to 1.2m, height 0.45m.
+   - Study desks/tables are typically width 1.0m to 1.5m, depth 0.6m, height 0.75m.
+   - Wardrobes/almirahs are tall (height ~1.8m-2.1m, width 0.9m-1.2m, depth 0.5m-0.6m).
+2. If the image is NOT an interior room, set "roomType" to "unknown" and return EMPTY arrays.
+3. Coordinates system (meters):
+   - Center of the room is (0, 0, 0).
+   - Y is vertical UP (Floor is at Y = 0, Ceiling is at Y = height).
+   - X is LEFT (-) to RIGHT (+).
+   - Z is DEPTH: Back wall is at Z = -(depth/2), front is at Z = +(depth/2).
+   - Objects sit on the floor: Y = height / 2.
 
-COORDINATE GUIDELINES:
-- Room width: X axis. Left wall at X = -(width/2), right wall at X = +(width/2)
-- Room depth: Z axis. Back wall at Z = -(depth/2), front wall at Z = +(depth/2)  
-- Floor at Y=0, ceiling at Y=height
-- Furniture sits ON the floor: Y = object_height/2
-- Typical room: width 3-5m, depth 4-6m, height 2.5-3m
-- Wall thickness: ignore, treat walls as flat planes
-
-SURFACE ROTATIONS (these are fixed — always use these exact rotations):
-- floor: rotation [-1.5708, 0, 0] (i.e. -PI/2 on X)
-- ceiling: rotation [1.5708, 0, 0] (i.e. +PI/2 on X)
-- back wall (facing camera): rotation [0, 0, 0]
-- left wall (facing right): rotation [0, 1.5708, 0]
-- right wall (facing left): rotation [0, -1.5708, 0]
-
-Return ONLY this JSON (no markdown, no extra text):
+Return ONLY this JSON format (no markdown, no conversation):
 {
-  "roomType": "bedroom|office|living|studio|kitchen|unknown",
+  "roomType": "bedroom|office|living|studio|dormitory",
   "dimensions": { "width": number, "depth": number, "height": number },
   "surfaces": [
-    { "id": "floor", "type": "floor", "position": [0, 0, 0], "rotation": [-1.5708, 0, 0], "dimensions": [width, depth], "material": { "color": "#hexcolor", "roughness": 0.8, "metalness": 0.0 } },
-    { "id": "ceiling", "type": "ceiling", "position": [0, height, 0], "rotation": [1.5708, 0, 0], "dimensions": [width, depth], "material": { "color": "#hexcolor", "roughness": 0.9, "metalness": 0.0 } },
-    { "id": "wall-back", "type": "wall", "position": [0, height/2, -(depth/2)], "rotation": [0, 0, 0], "dimensions": [width, height], "material": { "color": "#hexcolor", "roughness": 0.9, "metalness": 0.0 } },
-    { "id": "wall-left", "type": "wall", "position": [-(width/2), height/2, 0], "rotation": [0, 1.5708, 0], "dimensions": [depth, height], "material": { "color": "#hexcolor", "roughness": 0.9, "metalness": 0.0 } },
-    { "id": "wall-right", "type": "wall", "position": [width/2, height/2, 0], "rotation": [0, -1.5708, 0], "dimensions": [depth, height], "material": { "color": "#hexcolor", "roughness": 0.9, "metalness": 0.0 } }
+    { "id": "floor", "type": "floor", "position": [0, 0, 0], "rotation": [-1.5708, 0, 0], "dimensions": [width, depth], "material": { "color": "#f1ebe1", "roughness": 0.8, "metalness": 0.0 } },
+    { "id": "ceiling", "type": "ceiling", "position": [0, height, 0], "rotation": [1.5708, 0, 0], "dimensions": [width, depth], "material": { "color": "#faf8f5", "roughness": 0.9, "metalness": 0.0 } },
+    { "id": "wall-back", "type": "wall", "position": [0, height/2, -(depth/2)], "rotation": [0, 0, 0], "dimensions": [width, height], "material": { "color": "#f5f2eb", "roughness": 0.9, "metalness": 0.0 } },
+    { "id": "wall-left", "type": "wall", "position": [-(width/2), height/2, 0], "rotation": [0, 1.5708, 0], "dimensions": [depth, height], "material": { "color": "#f5f2eb", "roughness": 0.9, "metalness": 0.0 } },
+    { "id": "wall-right", "type": "wall", "position": [width/2, height/2, 0], "rotation": [0, -1.5708, 0], "dimensions": [depth, height], "material": { "color": "#f5f2eb", "roughness": 0.9, "metalness": 0.0 } }
   ],
   "objects": [
-    { "id": "bed", "type": "bed", "category": "furniture", "position": [X, Y, Z], "rotation": [0, 0, 0], "scale": [width, height, depth], "boundingBox": { "min": [-w/2, 0, -d/2], "max": [w/2, h, d/2] }, "confidence": 0.9, "attributes": {} }
+    { "id": "bed-1", "type": "bed", "category": "furniture", "position": [X, 0.25, Z], "rotation": [0, 0, 0], "scale": [1.0, 0.5, 2.0], "boundingBox": { "min": [-0.5, 0, -1], "max": [0.5, 0.5, 1] }, "confidence": 0.9 }
   ],
   "lighting": {
-    "type": "natural|artificial|mixed",
-    "colorTemperature": 4000,
-    "intensity": 0.7,
+    "type": "mixed",
+    "colorTemperature": 4500,
+    "intensity": 0.8,
     "direction": [0, -1, 0],
-    "sources": [{ "type": "window|ceiling|lamp", "position": [X, Y, Z], "intensity": 0.8, "color": "#ffffff" }]
+    "sources": [{ "type": "window", "position": [X, Y, Z], "intensity": 0.8, "color": "#ffffff" }]
   },
-  "colorPalette": ["#hex1", "#hex2", "#hex3"],
+  "colorPalette": ["#f5f2eb", "#c85a2b", "#2b231d"],
   "spatialFeatures": {
-    "hasDesk": false,
-    "hasChair": false,
-    "hasWindow": false,
-    "hasMonitor": false,
+    "hasDesk": true,
+    "hasChair": true,
+    "hasWindow": true,
+    "hasMonitor": true,
     "hasWhiteboard": false,
-    "focalPoint": [0, 1, 0]
+    "focalPoint": [0, 0.8, 0]
   }
 }`;
 
