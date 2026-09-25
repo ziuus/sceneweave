@@ -512,7 +512,7 @@ function CameraController({
   return null;
 }
 function PanoramaBackground({ capturedInput }: { capturedInput?: CapturedInput }) {
-  if (!capturedInput || capturedInput.type !== 'file') return null;
+  if (!capturedInput || capturedInput.type === 'demo') return null;
   // Load the base64 texture
   const texture = useLoader(THREE.TextureLoader, capturedInput.data);
   // Ensure it's mapped correctly for equirectangular
@@ -595,7 +595,7 @@ function SpatialCanvasInner({
           />
         </Suspense>
         
-        <Room scene={scene} environmentMods={environmentMods} hasPanorama={capturedInput?.type === 'file'} />
+        <Room scene={scene} environmentMods={environmentMods} hasPanorama={capturedInput?.type !== 'demo'} />
         
         <ContactShadows 
           opacity={0.3} 
