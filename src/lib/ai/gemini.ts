@@ -115,11 +115,11 @@ export async function analyzeSceneWithGemini(
 
   // If Gemini returned no surfaces (e.g. non-room image), build a minimal default room
   const surfaces: Surface[] = parsedSurfaces.length > 0 ? parsedSurfaces : [
-    { id: 'floor', type: 'floor', position: [0, 0, 0], rotation: [-Math.PI / 2, 0, 0], dimensions: [6, 6], material: { color: '#1a1a2e', roughness: 0.8, metalness: 0.1 } },
-    { id: 'wall-back', type: 'wall', position: [0, 1.5, -3], rotation: [0, 0, 0], dimensions: [6, 3], material: { color: '#16213e', roughness: 0.9, metalness: 0 } },
-    { id: 'wall-left', type: 'wall', position: [-3, 1.5, 0], rotation: [0, Math.PI / 2, 0], dimensions: [6, 3], material: { color: '#16213e', roughness: 0.9, metalness: 0 } },
-    { id: 'wall-right', type: 'wall', position: [3, 1.5, 0], rotation: [0, -Math.PI / 2, 0], dimensions: [6, 3], material: { color: '#16213e', roughness: 0.9, metalness: 0 } },
-    { id: 'ceiling', type: 'ceiling', position: [0, 3, 0], rotation: [Math.PI / 2, 0, 0], dimensions: [6, 6], material: { color: '#0f3460', roughness: 1, metalness: 0 } },
+    { id: 'floor', type: 'floor', position: [0, 0, 0], rotation: [-Math.PI / 2, 0, 0], dimensions: [6, 6], material: { color: '#2a2a3e', roughness: 0.8, metalness: 0.1 } },
+    { id: 'wall-back', type: 'wall', position: [0, 1.5, -3], rotation: [0, 0, 0], dimensions: [6, 3], material: { color: '#3a3a5e', roughness: 0.9, metalness: 0 } },
+    { id: 'wall-left', type: 'wall', position: [-3, 1.5, 0], rotation: [0, Math.PI / 2, 0], dimensions: [6, 3], material: { color: '#3a3a5e', roughness: 0.9, metalness: 0 } },
+    { id: 'wall-right', type: 'wall', position: [3, 1.5, 0], rotation: [0, -Math.PI / 2, 0], dimensions: [6, 3], material: { color: '#3a3a5e', roughness: 0.9, metalness: 0 } },
+    { id: 'ceiling', type: 'ceiling', position: [0, 3, 0], rotation: [Math.PI / 2, 0, 0], dimensions: [6, 6], material: { color: '#2e2e4e', roughness: 1, metalness: 0 } },
   ];
 
   const objects: DetectedObject[] = (result.objects || []).map((o: any, i: number) => ({

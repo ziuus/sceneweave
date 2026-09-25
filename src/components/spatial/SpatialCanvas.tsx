@@ -211,7 +211,7 @@ function LightingSystem({ environment, scene }: { environment: EnvironmentModifi
   
   return (
     <group>
-      <ambientLight color={lighting.ambientColor} intensity={lighting.ambientIntensity} />
+      <ambientLight color={lighting.ambientColor} intensity={Math.max(lighting.ambientIntensity, 0.6)} />
       
       <directionalLight
         position={lighting.keyLightPosition}
@@ -386,11 +386,11 @@ function SpatialCanvasInner({
         
         <LightingSystem environment={environmentMods || {
           lighting: {
-            ambientIntensity: 0.3,
-            ambientColor: '#1a1a2e',
-            keyLightIntensity: 0.8,
-            keyLightColor: '#e94560',
-            keyLightPosition: [0, 2, 2],
+            ambientIntensity: 1.2,
+            ambientColor: '#ffffff',
+            keyLightIntensity: 1.5,
+            keyLightColor: '#ffffff',
+            keyLightPosition: [0, 4, 2],
             accentLights: [],
           },
           materials: [],
