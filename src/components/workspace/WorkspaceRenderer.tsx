@@ -81,8 +81,8 @@ export function WorkspaceRenderer({ config, isTransitioning, onTransitionComplet
   
   if (!config) return null;
   
-  const floatingWidgets: any[] = [];
-  const spatialWidgets: any[] = [];
+  const floatingWidgets: WidgetConfig[] = [];
+  const spatialWidgets: WidgetConfig[] = [];
   const anchoredWidgets = config.widgets.filter(w => w.position === 'anchored' && w.visible);
   const dockedWidgets = config.widgets.filter(w => w.position === 'docked' && w.visible);
   
