@@ -136,7 +136,7 @@ export default function HomePage() {
           >
             <SpatialCanvas
               scene={sceneAnalysis}
-              capturedInput={capturedInput}
+              capturedInput={capturedInput || undefined}
               environmentMods={workspaceState.config?.environment}
               cameraPreset={workspaceState.config?.camera}
               isTransitioning={workspaceState.isTransitioning}
