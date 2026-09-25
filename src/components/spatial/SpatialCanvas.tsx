@@ -111,17 +111,17 @@ function ProceduralObject({ object, materialOverrides, onClick, hasPanorama }: {
   const material = useMemo(() => {
     if (hasPanorama) {
       const baseMat = new THREE.MeshStandardMaterial({
-        color: '#4a90e2',
+        color: colorConfig.color,
         transparent: true,
-        opacity: 0.15,
+        opacity: 0.35, // subtle transparency
         depthWrite: false,
-        roughness: 0.1,
-        metalness: 0.8,
-        wireframe: true,
+        roughness: 0.8,
+        metalness: 0.1,
+        wireframe: false, // Solid materials as requested
         ...materialOverrides,
       });
-      if (materialOverrides?.emissive) {
-        baseMat.emissive = new THREE.Color(materialOverrides.emissive);
+      if (materialOverrides?.emissive || colorConfig.emissive) {
+        baseMat.emissive = new THREE.Color(materialOverrides?.emissive || colorConfig.emissive);
       }
       return baseMat;
     }
@@ -553,8 +553,8 @@ function SpatialCanvasInner({
   const mobile = isMobile();
   
   const defaultCamera: CameraPreset = useMemo(() => ({
-    position: [0, 1.6, 2.5] as [number, number, number],
-    target: [0, 1.2, -3] as [number, number, number],
+    position: [0, 1.6, 0.1] as [number, number, number],
+    target: [0, 1.2, -2] as [number, number, number],
     fov: 70,
     transitionDuration: 1.5,
   }), []);
@@ -591,7 +591,7 @@ function SpatialCanvasInner({
         }} scene={scene} />
         
         <Suspense fallback={null}>
-          <PanoramaBackground capturedInput={capturedInput} />
+          <PanoramaBackground capturedInput={capturedInput} ambientIntensity={environmentMods?.lighting?.ambientIntensity} />
           <Environment 
             preset="warehouse" 
             background={false} 
@@ -643,11 +643,11 @@ function SpatialCanvasInner({
         />
         
         <OrbitControls
-          enablePan={true}
+          enablePan={false}
           enableZoom={true}
           enableRotate={true}
           minPolarAngle={0}
-          maxPolarAngle={Math.PI / 2 - 0.05}
+          maxPolarAngle={Math.PI - 0.1}
           minDistance={0.5}
           maxDistance={mobile ? 6 : 8}
           target={[0, 1.2, -1]}
