@@ -113,16 +113,29 @@ export function CaptureArea() {
   const handleProceed = () => {
     if (!selectedFile || !previewUrl) return;
     
-    const capturedInput: CapturedInput = {
-      type: inputType,
-      data: previewUrl,
-      metadata: { 
-        isEquirectangular: inputType === 'panorama' 
-      },
+    setIsProcessing(true);
+    
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const dataUrl = reader.result as string;
+      const capturedInput: CapturedInput = {
+        type: inputType,
+        data: dataUrl,
+        metadata: { 
+          isEquirectangular: inputType === 'panorama' 
+        },
+      };
+      
+      setCapturedInput(capturedInput);
+      setStage('analyzing');
+      setIsProcessing(false);
+    };
+    reader.onerror = () => {
+      setError('Failed to process image');
+      setIsProcessing(false);
     };
     
-    setCapturedInput(capturedInput);
-    setStage('analyzing');
+    reader.readAsDataURL(selectedFile);
   };
   
   const removeFile = () => {

@@ -55,7 +55,10 @@ Guidelines:
 
 async function callGeminiVision(apiKey: string, imageData: string, prompt: string): Promise<any> {
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
+  const model = genAI.getGenerativeModel({ 
+    model: GEMINI_MODEL,
+    generationConfig: { responseMimeType: "application/json" }
+  });
 
   const base64Data = imageData.split(',')[1];
   const mimeType = imageData.split(';')[0].split(':')[1];
@@ -73,12 +76,11 @@ async function callGeminiVision(apiKey: string, imageData: string, prompt: strin
   const response = await result.response;
   const text = response.text();
   
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
+  try {
+    return JSON.parse(text);
+  } catch (err) {
     throw new Error('No valid JSON found in Gemini response');
   }
-  
-  return JSON.parse(jsonMatch[0]);
 }
 
 export async function analyzeSceneWithGemini(

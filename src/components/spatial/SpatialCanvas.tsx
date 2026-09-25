@@ -402,7 +402,6 @@ function SpatialCanvasInner({
         <Environment 
           preset="warehouse" 
           background={false} 
-          files={['/studio.hdr']}
           resolution={256}
         />
         

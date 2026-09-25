@@ -44,21 +44,23 @@ export default function HomePage() {
     }
   }, [setStage, setSceneAnalysis, setError]);
   
-  const handleModeChange = useCallback(async (mode: string) => {
-    if (!sceneAnalysis || workspaceState.isTransitioning) return;
-    
-    setTransitioning(true);
-    setMode(mode as any);
-    
-    try {
-      const config = await generateWorkspace(mode, sceneAnalysis);
-      setWorkspaceConfig(config);
-    } catch (err) {
-      console.error('Failed to generate workspace:', err);
-    } finally {
-      setTimeout(() => setTransitioning(false), 2000);
+  useEffect(() => {
+    if (stage === 'spatial' && sceneAnalysis && workspaceState.currentMode) {
+      if (!workspaceState.config || workspaceState.config.mode !== workspaceState.currentMode) {
+        const fetchConfig = async () => {
+          try {
+            const config = await generateWorkspace(workspaceState.currentMode!, sceneAnalysis);
+            setWorkspaceConfig(config);
+          } catch (err) {
+            console.error('Failed to generate workspace:', err);
+          } finally {
+            setTimeout(() => setTransitioning(false), 2000);
+          }
+        };
+        fetchConfig();
+      }
     }
-  }, [sceneAnalysis, workspaceState.isTransitioning, setMode, setWorkspaceConfig, setTransitioning]);
+  }, [stage, sceneAnalysis, workspaceState.currentMode, workspaceState.config?.mode, setWorkspaceConfig, setTransitioning]);
   
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
