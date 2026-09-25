@@ -159,10 +159,11 @@ export async function analyzeSceneWithGemini(
 export { mockAIProvider };
 
 function getApiKey(): string | null {
+  const envKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || null;
   if (typeof window !== 'undefined') {
-    return localStorage.getItem('gemini_api_key');
+    return localStorage.getItem('gemini_api_key') || envKey;
   }
-  return process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || null;
+  return process.env.GEMINI_API_KEY || envKey;
 }
 
 export const geminiProvider = {
