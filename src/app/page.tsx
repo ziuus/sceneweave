@@ -68,6 +68,18 @@ export default function HomePage() {
   
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
+      <AnimatePresence>
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: -20, x: '-50%' }}
+            className="fixed top-8 left-1/2 z-[100] bg-red-500/90 text-white px-6 py-3 rounded-full font-medium shadow-lg whitespace-nowrap"
+          >
+            {error}
+          </motion.div>
+        )}
+      </AnimatePresence>
       <AnimatePresence mode="wait">
         {stage === 'capture' && (
           <motion.div

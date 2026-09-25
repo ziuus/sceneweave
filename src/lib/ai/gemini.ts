@@ -72,11 +72,15 @@ async function callGeminiVision(apiKey: string, imageData: string, prompt: strin
   ]);
 
   const response = await result.response;
-  const text = response.text();
+  let text = response.text();
+  
+  text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
   
   try {
-    return JSON.parse(text);
+    const parsed = JSON.parse(text);
+    return parsed;
   } catch (err) {
+    console.error('Gemini parsing error:', err, 'Raw text:', text);
     throw new Error('No valid JSON found in Gemini response');
   }
 }
