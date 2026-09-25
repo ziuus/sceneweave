@@ -496,7 +496,7 @@ function PanoramaBackground({ capturedInput }: { capturedInput?: CapturedInput }
   // Load the base64 texture
   const texture = useLoader(THREE.TextureLoader, capturedInput.data);
   // Ensure it's mapped correctly for equirectangular
-  texture.mapping = THREE.EquirectangularReflectionMapping;
+  // texture.mapping = THREE.EquirectangularReflectionMapping;
   texture.colorSpace = THREE.SRGBColorSpace;
   
   return (
