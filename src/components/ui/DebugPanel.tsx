@@ -27,9 +27,9 @@ export function DebugPanel({ scene, capturedInput }: { scene: SceneAnalysis | nu
           </div>
           
           <div className="mb-2">
-            <span className="text-white/60">Detected room:</span> {scene.metadata?.type || 'unknown'}
+            <span className="text-white/60">Detected room:</span> {scene.roomType || 'unknown'}
             <br />
-            <span className="text-white/60">Dimensions:</span> {scene.metadata?.estimatedDimensions?.join('x')}
+            <span className="text-white/60">Dimensions:</span> {[scene.dimensions.width, scene.dimensions.height, scene.dimensions.depth].join('x')}
           </div>
           
           <div className="mb-2">
