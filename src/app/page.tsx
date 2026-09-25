@@ -144,16 +144,17 @@ export default function HomePage() {
               className="absolute inset-0"
             />
             
-            <WorkspaceRenderer
+            {/* WorkspaceRenderer — v2 feature, disabled for hackathon demo */}
+            {/* <WorkspaceRenderer
               config={workspaceState.config}
               isTransitioning={workspaceState.isTransitioning}
-            />
+            /> */}
             
-            <WorkspaceTransition
+            {/* <WorkspaceTransition
               isTransitioning={workspaceState.isTransitioning}
               fromMode={workspaceState.currentMode || undefined}
               toMode={workspaceState.config?.mode}
-            />
+            /> */}
             
             <IntentPanel />
             

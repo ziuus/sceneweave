@@ -24,18 +24,31 @@ const ROOM_COLORS = {
   windowGlow: '#4a90d9',
 };
 
-const OBJECT_COLORS: Record<string, { color: string; emissive?: string }> = {
-  desk: { color: '#2a1a1a', emissive: '#e94560' },
-  'office-chair': { color: '#1a1a1a' },
-  monitor: { color: '#0d1a2a', emissive: '#64b5f6' },
-  laptop: { color: '#1a1a1a' },
-  'desk-lamp': { color: '#2a2a1a', emissive: '#ffd700' },
-  plant: { color: '#1a2a1a' },
-  bookshelf: { color: '#1a1a1a' },
-  whiteboard: { color: '#001515', emissive: '#00d4aa' },
-  keyboard: { color: '#1a1a1a' },
-  mouse: { color: '#1a1a1a' },
-  'coffee-mug': { color: '#2a1a1a' },
+const OBJECT_COLORS: Record<string, { color: string; emissive?: string; roughness?: number; metalness?: number }> = {
+  // Bedroom
+  bed: { color: '#8B4513', roughness: 0.8 },
+  wardrobe: { color: '#3d2b1f', roughness: 0.9 },
+  cupboard: { color: '#3d2b1f', roughness: 0.9 },
+  almirah: { color: '#3d2b1f', roughness: 0.9 },
+  chair: { color: '#2a2a2a', roughness: 0.8 },
+  table: { color: '#5c3d1e', roughness: 0.7 },
+  window: { color: '#a8d8ea', emissive: '#a8d8ea', roughness: 0.1, metalness: 0.2 },
+  fan: { color: '#aaaaaa', roughness: 0.4, metalness: 0.6 },
+  // Office
+  desk: { color: '#5c3d1e', roughness: 0.7 },
+  'office-chair': { color: '#1a1a1a', roughness: 0.8 },
+  monitor: { color: '#0d1a2a', emissive: '#4a9eff', roughness: 0.2 },
+  laptop: { color: '#2a2a2a', emissive: '#4a9eff', roughness: 0.3 },
+  'desk-lamp': { color: '#ccaa55', emissive: '#ffd700', roughness: 0.3 },
+  plant: { color: '#2d5a1b', roughness: 0.9 },
+  bookshelf: { color: '#4a2f1a', roughness: 0.8 },
+  whiteboard: { color: '#f0f0f0', roughness: 0.3 },
+  keyboard: { color: '#333333', roughness: 0.7 },
+  mouse: { color: '#333333', roughness: 0.7 },
+  'coffee-mug': { color: '#a0522d', roughness: 0.6 },
+  sofa: { color: '#4a3728', roughness: 0.9 },
+  tv: { color: '#111111', emissive: '#2244aa', roughness: 0.2 },
+  refrigerator: { color: '#dddddd', roughness: 0.3, metalness: 0.5 },
 };
 
 function SurfaceMesh({ surface, materialOverrides }: { surface: Surface; materialOverrides?: Partial<THREE.MeshStandardMaterialParameters> }) {
@@ -81,29 +94,44 @@ function ProceduralObject({ object, materialOverrides, onClick }: {
   const colorConfig = OBJECT_COLORS[object.type] || { color: '#2a2a2a' };
   
   const geometry = useMemo(() => {
+    const [w, h, d] = object.scale;
     switch (object.type) {
-      case 'desk':
-        return new THREE.BoxGeometry(object.scale[0], object.scale[1], object.scale[2]);
+      // Bedroom
+      case 'bed':
+        return new THREE.BoxGeometry(w, h, d);
+      case 'wardrobe':
+      case 'cupboard':
+      case 'almirah':
+        return new THREE.BoxGeometry(w, h, d);
+      case 'chair':
       case 'office-chair':
-        return new THREE.CylinderGeometry(object.scale[0], object.scale[0] * 0.8, object.scale[1], 8);
+        return new THREE.CylinderGeometry(w * 0.5, w * 0.4, h, 8);
+      case 'sofa':
+        return new THREE.BoxGeometry(w, h, d);
+      case 'table':
+      case 'desk':
+        return new THREE.BoxGeometry(w, h, d);
       case 'monitor':
-        return new THREE.BoxGeometry(object.scale[0], object.scale[1], object.scale[2]);
+      case 'tv':
+        return new THREE.BoxGeometry(w, h, 0.05);
       case 'laptop':
-        return new THREE.BoxGeometry(object.scale[0], object.scale[1], object.scale[2]);
+        return new THREE.BoxGeometry(w, h * 0.5, d);
+      case 'fan':
+        return new THREE.CylinderGeometry(w, w, 0.05, 16);
       case 'desk-lamp':
-        return new THREE.CylinderGeometry(object.scale[0], object.scale[0] * 0.5, object.scale[1], 6);
+        return new THREE.CylinderGeometry(w * 0.3, w * 0.5, h, 6);
       case 'plant':
-        return new THREE.ConeGeometry(object.scale[0], object.scale[1], 6);
+        return new THREE.ConeGeometry(w * 0.5, h, 6);
       case 'bookshelf':
-        return new THREE.BoxGeometry(object.scale[0], object.scale[1], object.scale[2]);
+        return new THREE.BoxGeometry(w, h, d);
       case 'whiteboard':
-        return new THREE.BoxGeometry(object.scale[0], object.scale[1], object.scale[2]);
+        return new THREE.BoxGeometry(w, h, 0.03);
       case 'keyboard':
-        return new THREE.BoxGeometry(object.scale[0], object.scale[1], object.scale[2]);
+        return new THREE.BoxGeometry(w, 0.03, d);
       case 'mouse':
-        return new THREE.BoxGeometry(object.scale[0], object.scale[1], object.scale[2]);
+        return new THREE.BoxGeometry(w, 0.03, d);
       case 'coffee-mug':
-        return new THREE.CylinderGeometry(object.scale[0], object.scale[0], object.scale[1], 8);
+        return new THREE.CylinderGeometry(w * 0.4, w * 0.4, h, 8);
       default:
         return new THREE.BoxGeometry(object.scale[0], object.scale[1], object.scale[2]);
     }
