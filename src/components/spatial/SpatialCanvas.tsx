@@ -513,18 +513,27 @@ function CameraController({
   
   return null;
 }
-function PanoramaBackground({ capturedInput }: { capturedInput?: CapturedInput }) {
+function PanoramaBackground({ capturedInput, ambientIntensity = 1 }: { capturedInput?: CapturedInput, ambientIntensity?: number }) {
   if (!capturedInput || capturedInput.type === 'demo') return null;
-  // Load the base64 texture
   const texture = useLoader(THREE.TextureLoader, capturedInput.data);
-  // Ensure it's mapped correctly for equirectangular
-  // texture.mapping = THREE.EquirectangularReflectionMapping;
   texture.colorSpace = THREE.SRGBColorSpace;
   
+  const tint = new THREE.Color().setScalar(Math.max(0.2, ambientIntensity));
+  
+  if (capturedInput.type === 'panorama') {
+    return (
+      <mesh scale={[-1, 1, 1]}>
+        <sphereGeometry args={[100, 64, 64]} />
+        <meshBasicMaterial map={texture} side={THREE.BackSide} color={tint} />
+      </mesh>
+    );
+  }
+  
+  const aspect = (capturedInput.width || 1600) / (capturedInput.height || 900);
   return (
-    <mesh>
-      <sphereGeometry args={[100, 64, 64]} />
-      <meshStandardMaterial map={texture} side={THREE.BackSide} roughness={1} metalness={0} />
+    <mesh position={[0, 1.5, -10]}>
+      <planeGeometry args={[20 * aspect, 20]} />
+      <meshBasicMaterial map={texture} color={tint} />
     </mesh>
   );
 }
