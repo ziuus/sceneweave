@@ -92,7 +92,7 @@ export async function analyzeSceneWithGemini(
 ): Promise<SceneAnalysis> {
   const result = await callGeminiVision(apiKey, imageData, SCENE_ANALYSIS_PROMPT);
   
-  const surfaces: Surface[] = (result.surfaces || []).map((s: any, i: number) => {
+  const parsedSurfaces: Surface[] = (result.surfaces || []).map((s: any, i: number) => {
     let rotation = s.rotation || [0, 0, 0];
     if (s.type === 'floor') rotation = [-Math.PI / 2, 0, 0];
     if (s.type === 'ceiling') rotation = [Math.PI / 2, 0, 0];
@@ -103,15 +103,24 @@ export async function analyzeSceneWithGemini(
       position: s.position || [0, 0, 0],
       rotation,
       dimensions: s.dimensions || [5, 3],
-    material: {
-      color: s.material?.color || '#1a1a2e',
-      roughness: s.material?.roughness ?? 0.8,
-      metalness: s.material?.metalness ?? 0.1,
-      emissive: s.material?.emissive,
-      emissiveIntensity: s.material?.emissiveIntensity,
-    },
+      material: {
+        color: s.material?.color || '#1a1a2e',
+        roughness: s.material?.roughness ?? 0.8,
+        metalness: s.material?.metalness ?? 0.1,
+        emissive: s.material?.emissive,
+        emissiveIntensity: s.material?.emissiveIntensity,
+      },
     };
   });
+
+  // If Gemini returned no surfaces (e.g. non-room image), build a minimal default room
+  const surfaces: Surface[] = parsedSurfaces.length > 0 ? parsedSurfaces : [
+    { id: 'floor', type: 'floor', position: [0, 0, 0], rotation: [-Math.PI / 2, 0, 0], dimensions: [6, 6], material: { color: '#1a1a2e', roughness: 0.8, metalness: 0.1 } },
+    { id: 'wall-back', type: 'wall', position: [0, 1.5, -3], rotation: [0, 0, 0], dimensions: [6, 3], material: { color: '#16213e', roughness: 0.9, metalness: 0 } },
+    { id: 'wall-left', type: 'wall', position: [-3, 1.5, 0], rotation: [0, Math.PI / 2, 0], dimensions: [6, 3], material: { color: '#16213e', roughness: 0.9, metalness: 0 } },
+    { id: 'wall-right', type: 'wall', position: [3, 1.5, 0], rotation: [0, -Math.PI / 2, 0], dimensions: [6, 3], material: { color: '#16213e', roughness: 0.9, metalness: 0 } },
+    { id: 'ceiling', type: 'ceiling', position: [0, 3, 0], rotation: [Math.PI / 2, 0, 0], dimensions: [6, 6], material: { color: '#0f3460', roughness: 1, metalness: 0 } },
+  ];
 
   const objects: DetectedObject[] = (result.objects || []).map((o: any, i: number) => ({
     id: o.id || `object-${i}`,
