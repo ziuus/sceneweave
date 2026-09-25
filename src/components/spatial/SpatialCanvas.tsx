@@ -361,9 +361,9 @@ function SpatialCanvasInner({
   const mobile = isMobile();
   
   const defaultCamera: CameraPreset = useMemo(() => ({
-    position: [0, 1.6, 1.5],
-    target: [0, 0.8, -0.5],
-    fov: 75,
+    position: [0, 1.6, 2.5] as [number, number, number],
+    target: [0, 1.2, -3] as [number, number, number],
+    fov: 70,
     transitionDuration: 1.5,
   }), []);
   
@@ -428,9 +428,9 @@ function SpatialCanvasInner({
           enableRotate={true}
           minPolarAngle={0}
           maxPolarAngle={Math.PI / 2 - 0.05}
-          minDistance={1.5}
+          minDistance={0.5}
           maxDistance={mobile ? 6 : 8}
-          target={[0, 0.8, -0.5]}
+          target={[0, 1.2, -1]}
           enableDamping={true}
           dampingFactor={0.05}
           rotateSpeed={0.5}
