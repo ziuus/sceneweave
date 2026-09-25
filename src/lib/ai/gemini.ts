@@ -8,33 +8,31 @@ type AIInputType = InputType;
 
 const GEMINI_MODEL = 'gemini-1.5-flash';
 
-const SCENE_ANALYSIS_PROMPT = `You are a spatial AI that analyzes interior photos/panoramas and returns a detailed structured scene understanding.
+const SCENE_ANALYSIS_PROMPT = `You are a spatial AI that analyzes photos and returns a detailed structured scene understanding.
 
-Analyze the provided image and return a JSON object with this exact structure:
+CRITICAL INSTRUCTIONS:
+1. If the image is NOT an interior room (e.g., it is a car, landscape, animal, or exterior), set "roomType" to "unknown" and return EMPTY arrays for "surfaces" and "objects". Do not invent walls or desks.
+2. DO NOT just copy the example JSON structure. Build the arrays based ONLY on what you actually see.
+
+Analyze the provided image and return a JSON object with this exact structure (this is just a schema example, replace with actual detected data):
 
 {
   "roomType": "office|bedroom|living|studio|kitchen|unknown",
   "dimensions": { "width": number, "depth": number, "height": number },
   "surfaces": [
-    { "id": "floor", "type": "floor", "position": [x,y,z], "rotation": [rx,ry,rz], "dimensions": [w,h], "material": { "color": "hex", "roughness": 0-1, "metalness": 0-1 } },
-    { "id": "wall-back", "type": "wall", "position": [x,y,z], "rotation": [rx,ry,rz], "dimensions": [w,h], "material": { ... } },
-    { "id": "wall-left", "type": "wall", "position": [x,y,z], "rotation": [rx,ry,rz], "dimensions": [w,h], "material": { ... } },
-    { "id": "wall-right", "type": "wall", "position": [x,y,z], "rotation": [rx,ry,rz], "dimensions": [w,h], "material": { ... } },
-    { "id": "wall-front", "type": "wall", "position": [x,y,z], "rotation": [rx,ry,rz], "dimensions": [w,h], "material": { ... } },
-    { "id": "ceiling", "type": "ceiling", "position": [x,y,z], "rotation": [rx,ry,rz], "dimensions": [w,h], "material": { ... } },
-    { "id": "window", "type": "window", "position": [x,y,z], "rotation": [rx,ry,rz], "dimensions": [w,h], "material": { "color": "hex", "roughness": 0.1, "metalness": 0.9, "emissive": "hex", "emissiveIntensity": 0-1 } }
+    { "id": "floor", "type": "floor", "position": [x,y,z], "rotation": [rx,ry,rz], "dimensions": [w,h], "material": { "color": "hex", "roughness": 0-1, "metalness": 0-1 } }
   ],
   "objects": [
-    { "id": "desk", "type": "desk", "category": "furniture", "position": [x,y,z], "rotation": [rx,ry,rz], "scale": [x,y,z], "boundingBox": { "min": [x,y,z], "max": [x,y,z] }, "confidence": 0-1, "attributes": {} }
+    { "id": "obj-1", "type": "desk|bed|chair|sofa|monitor|car|etc", "category": "furniture|vehicle|other", "position": [x,y,z], "rotation": [rx,ry,rz], "scale": [x,y,z], "boundingBox": { "min": [x,y,z], "max": [x,y,z] }, "confidence": 0-1, "attributes": {} }
   ],
   "lighting": {
     "type": "natural|artificial|mixed",
-    "colorTemperature": number (Kelvin),
-    "intensity": 0-1,
-    "direction": [x,y,z],
-    "sources": [ { "type": "window|lamp|ceiling|screen", "position": [x,y,z], "intensity": 0-1, "color": "hex" } ]
+    "colorTemperature": 4000,
+    "intensity": 0.5,
+    "direction": [0,-1,0],
+    "sources": []
   },
-  "colorPalette": ["hex1", "hex2", ...],
+  "colorPalette": ["hex1", "hex2"],
   "spatialFeatures": {
     "hasDesk": boolean,
     "hasChair": boolean,
