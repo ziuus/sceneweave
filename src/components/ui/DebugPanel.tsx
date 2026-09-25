@@ -21,8 +21,8 @@ export function DebugPanel({ scene, capturedInput }: { scene: SceneAnalysis | nu
           
           <div className="mb-2">
             <span className="text-white/60">Panorama loaded:</span>{' '}
-            <span className={capturedInput?.type === 'file' ? 'text-green-400' : 'text-yellow-400'}>
-              {capturedInput?.type === 'file' ? 'yes' : 'no'}
+            <span className={capturedInput?.type !== 'demo' ? 'text-green-400' : 'text-yellow-400'}>
+              {capturedInput?.type !== 'demo' ? 'yes' : 'no'}
             </span>
           </div>
           
