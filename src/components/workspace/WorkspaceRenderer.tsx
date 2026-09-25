@@ -40,7 +40,7 @@ import {
 } from './widgets/BreathingGuideWidget';
 import { isMobile } from '@/lib/utils/mobile';
 
-const widgetComponents: Record<WidgetType, React.ComponentType<any>> = {
+export const widgetComponents: Record<WidgetType, React.ComponentType<any>> = {
   'timer': TimerWidget,
   'task-list': TaskListWidget,
   'focus-controls': FocusControlsWidget,
@@ -81,8 +81,8 @@ export function WorkspaceRenderer({ config, isTransitioning, onTransitionComplet
   
   if (!config) return null;
   
-  const floatingWidgets = config.widgets.filter(w => w.position === 'floating' && w.visible);
-  const spatialWidgets = config.widgets.filter(w => w.position === 'spatial' && w.visible);
+  const floatingWidgets: any[] = [];
+  const spatialWidgets: any[] = [];
   const anchoredWidgets = config.widgets.filter(w => w.position === 'anchored' && w.visible);
   const dockedWidgets = config.widgets.filter(w => w.position === 'docked' && w.visible);
   

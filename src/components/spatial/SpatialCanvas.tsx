@@ -12,6 +12,8 @@ import {
 import * as THREE from 'three';
 import { motion } from 'framer-motion';
 import { SceneAnalysis, Surface, DetectedObject, EnvironmentModifications, CameraPreset, CapturedInput } from '@/lib/scene/types';
+import { WidgetConfig } from '@/lib/workspace/types';
+import { widgetComponents } from '@/components/workspace/WorkspaceRenderer';
 import { useApp } from '@/lib/store/AppContext';
 import { isMobile, hapticFeedback } from '@/lib/utils/mobile';
 import { lerp, lerpVec3, easeInOutCubic } from '@/lib/utils/transitions';
@@ -532,6 +534,7 @@ interface SpatialCanvasProps {
   capturedInput?: CapturedInput;
   environmentMods?: EnvironmentModifications;
   cameraPreset?: CameraPreset;
+  widgets?: WidgetConfig[];
   isTransitioning?: boolean;
   onTransitionComplete?: () => void;
   className?: string;
@@ -542,6 +545,7 @@ function SpatialCanvasInner({
   capturedInput,
   environmentMods, 
   cameraPreset,
+  widgets = [],
   isTransitioning = false,
   onTransitionComplete,
   className = ''
@@ -597,6 +601,33 @@ function SpatialCanvasInner({
         
         <Room scene={scene} environmentMods={environmentMods} hasPanorama={capturedInput?.type !== 'demo'} />
         
+        
+        {widgets.filter(w => w.position === 'spatial' || w.position === 'floating').map(widget => {
+          const Component = widgetComponents[widget.type];
+          if (!Component || !widget.visible) return null;
+          
+          let anchorPos = [0, 1.5, -2];
+          if (widget.anchor) {
+            const obj = scene.objects.find(o => o.id === widget.anchor) || 
+                        scene.objects.find(o => o.type === widget.anchor) ||
+                        scene.surfaces.find(s => s.id === widget.anchor);
+            if (obj) {
+              anchorPos = obj.position;
+            }
+          }
+          
+          const offset = widget.anchorOffset || [0, 0, 0];
+          const pos = [anchorPos[0] + offset[0], anchorPos[1] + offset[1], anchorPos[2] + offset[2]];
+          
+          return (
+            <Html key={widget.id} position={pos as [number, number, number]} center transform={widget.position === 'spatial'} distanceFactor={widget.position === 'spatial' ? 3 : undefined} zIndexRange={[100, 0]}>
+              <div className="pointer-events-auto origin-center">
+                <Component {...widget.props} />
+              </div>
+            </Html>
+          );
+        })}
+
         <ContactShadows 
           opacity={0.3} 
           scale={10} 

@@ -139,6 +139,7 @@ export default function HomePage() {
               capturedInput={capturedInput || undefined}
               environmentMods={workspaceState.config?.environment}
               cameraPreset={workspaceState.config?.camera}
+              widgets={workspaceState.config?.widgets}
               isTransitioning={workspaceState.isTransitioning}
               onTransitionComplete={() => {}}
               className="absolute inset-0"
