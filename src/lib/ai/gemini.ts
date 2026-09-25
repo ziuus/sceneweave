@@ -108,7 +108,8 @@ export async function analyzeSceneWithGemini(
       emissive: s.material?.emissive,
       emissiveIntensity: s.material?.emissiveIntensity,
     },
-  }));
+    };
+  });
 
   const objects: DetectedObject[] = (result.objects || []).map((o: any, i: number) => ({
     id: o.id || `object-${i}`,
