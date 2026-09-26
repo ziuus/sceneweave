@@ -157,7 +157,7 @@ export default function HomePage() {
               toMode={workspaceState.config?.mode}
             /> */}
             
-            <IntentPanel />
+            { /* <IntentPanel /> */ }
             
             {!mobile && (
               <motion.div

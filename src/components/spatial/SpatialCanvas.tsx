@@ -599,16 +599,9 @@ function SpatialCanvasInner({
           effects: { vignette: 0.3, bloom: 0.1, chromaticAberration: 0 },
         }} scene={scene} />
         
-        <Suspense fallback={null}>
-          <PanoramaBackground capturedInput={capturedInput} ambientIntensity={environmentMods?.lighting?.ambientIntensity} />
-          <Environment 
-            preset="warehouse" 
-            background={false} 
-            resolution={256}
-          />
-        </Suspense>
+        <PanoramaBackground capturedInput={capturedInput} ambientIntensity={environmentMods?.lighting?.ambientIntensity} />
         
-        <Room scene={scene} environmentMods={environmentMods} hasPanorama={capturedInput?.type !== 'demo'} />
+        {/* <Room scene={scene} environmentMods={environmentMods} hasPanorama={capturedInput?.type !== 'demo'} /> */}
         
         
         {widgets.filter(w => w.position === 'spatial' || w.position === 'floating').map(widget => {
