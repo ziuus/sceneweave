@@ -529,7 +529,7 @@ function PanoramaBackground({ capturedInput, ambientIntensity = 1 }: { capturedI
     if (!capturedInput || capturedInput.type === 'demo') return;
     
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    // img.crossOrigin = 'anonymous';
     img.onload = () => {
       setStatus(s => ({ ...s, loaded: true }));
       const aspect = img.width / img.height;
@@ -564,7 +564,7 @@ function PanoramaBackground({ capturedInput, ambientIntensity = 1 }: { capturedI
   return (
     <>
       <Html fullscreen zIndexRange={[1000, 0]}>
-        <div className="absolute top-20 right-4 bg-black/80 p-4 rounded-lg text-white font-mono text-sm shadow-xl border border-white/20">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-red-900/90 p-8 rounded-lg text-white font-mono text-xl shadow-xl border border-white z-[9999]"> 
           <div className="font-bold mb-2 border-b border-white/20 pb-1">PANORAMA STATUS</div>
           <div className={status.loaded ? 'text-green-400' : 'text-yellow-400'}>{status.loaded ? '✓' : '○'} Image loaded</div>
           <div className={status.texture ? 'text-green-400' : 'text-yellow-400'}>{status.texture ? '✓' : '○'} Texture created</div>
