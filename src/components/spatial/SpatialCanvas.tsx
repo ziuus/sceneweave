@@ -514,27 +514,81 @@ function CameraController({
   return null;
 }
 function PanoramaBackground({ capturedInput, ambientIntensity = 1 }: { capturedInput?: CapturedInput, ambientIntensity?: number }) {
+  const [status, setStatus] = useState({
+    loaded: false,
+    texture: false,
+    applied: false,
+    rendered: false,
+    error: '',
+    isEquirectangular: false,
+  });
+  
+  const [texture, setTexture] = useState<THREE.Texture | null>(null);
+
+  useEffect(() => {
+    if (!capturedInput || capturedInput.type === 'demo') return;
+    
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      setStatus(s => ({ ...s, loaded: true }));
+      const aspect = img.width / img.height;
+      const isEquirect = aspect >= 1.8; // 2:1 is 2.0
+      setStatus(s => ({ ...s, isEquirectangular: isEquirect }));
+      
+      try {
+        const tex = new THREE.Texture(img);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        
+        // Ensure proper flipping for inside-out sphere projection
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.repeat.x = -1;
+        
+        tex.needsUpdate = true;
+        setTexture(tex);
+        setStatus(s => ({ ...s, texture: true, applied: true, rendered: true }));
+      } catch (err: any) {
+        setStatus(s => ({ ...s, error: err.message || 'Texture creation failed' }));
+      }
+    };
+    img.onerror = () => {
+      setStatus(s => ({ ...s, error: 'Failed to load image' }));
+    };
+    img.src = capturedInput.data;
+  }, [capturedInput]);
+
   if (!capturedInput || capturedInput.type === 'demo') return null;
-  const texture = useLoader(THREE.TextureLoader, capturedInput.data);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  
+
   const tint = new THREE.Color().setScalar(Math.max(0.2, ambientIntensity));
-  
-  if (capturedInput.type === 'panorama') {
-    return (
-      <mesh scale={[-1, 1, 1]}>
-        <sphereGeometry args={[100, 64, 64]} />
-        <meshBasicMaterial map={texture} side={THREE.BackSide} color={tint} />
-      </mesh>
-    );
-  }
-  
-  const aspect = (capturedInput.width || 1600) / (capturedInput.height || 900);
+
   return (
-    <mesh position={[0, 1.5, -10]}>
-      <planeGeometry args={[20 * aspect, 20]} />
-      <meshBasicMaterial map={texture} color={tint} />
-    </mesh>
+    <>
+      <Html fullscreen zIndexRange={[1000, 0]}>
+        <div className="absolute top-20 right-4 bg-black/80 p-4 rounded-lg text-white font-mono text-sm shadow-xl border border-white/20">
+          <div className="font-bold mb-2 border-b border-white/20 pb-1">PANORAMA STATUS</div>
+          <div className={status.loaded ? 'text-green-400' : 'text-yellow-400'}>{status.loaded ? '✓' : '○'} Image loaded</div>
+          <div className={status.texture ? 'text-green-400' : 'text-yellow-400'}>{status.texture ? '✓' : '○'} Texture created</div>
+          <div className={status.applied ? 'text-green-400' : 'text-yellow-400'}>{status.applied ? '✓' : '○'} Texture applied</div>
+          <div className={status.rendered ? 'text-green-400' : 'text-yellow-400'}>{status.rendered ? '✓' : '○'} Environment rendered</div>
+          <div className="mt-2 text-blue-300">Aspect: {status.isEquirectangular ? 'Equirectangular (360)' : 'Normal Photo'}</div>
+          {status.error && <div className="mt-2 text-red-400">ERROR: {status.error}</div>}
+        </div>
+      </Html>
+
+      {texture && status.isEquirectangular && (
+        <mesh>
+          <sphereGeometry args={[100, 64, 64]} />
+          <meshBasicMaterial map={texture} side={THREE.BackSide} color={tint} />
+        </mesh>
+      )}
+
+      {texture && !status.isEquirectangular && (
+        <mesh position={[0, 0, -10]}>
+          <planeGeometry args={[20 * (texture.image.width / texture.image.height), 20]} />
+          <meshBasicMaterial map={texture} color={tint} />
+        </mesh>
+      )}
+    </>
   );
 }
 
