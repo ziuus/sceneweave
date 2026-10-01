@@ -1,29 +1,10 @@
 import type { Metadata } from 'next';
-import { Inter, Space_Grotesk, JetBrains_Mono } from 'next/font/google';
 import { AppProvider } from '@/lib/store/AppContext';
 import './globals.css';
 
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-});
-
-const spaceGrotesk = Space_Grotesk({
-  subsets: ['latin'],
-  variable: '--font-space-grotesk',
-  display: 'swap',
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-jetbrains-mono',
-  display: 'swap',
-});
-
 export const metadata: Metadata = {
-  title: 'SceneWeave - Turn spaces into experiences',
-  description: 'Transform your captured spaces into adaptive AI workspaces',
+  title: 'SceneWeave — Spatial scene agent prototype',
+  description: 'Upload a room image, inspect a demo reconstruction, and direct an AI agent that edits an interactive 3D scene.',
 };
 
 export const viewport = {
@@ -31,7 +12,7 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#0a0a0f',
+  themeColor: '#f7f3ed',
 };
 
 export default function RootLayout({
@@ -46,7 +27,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body
-        className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} font-sans antialiased bg-bg-primary text-text-primary`}
+        className="font-sans antialiased"
         style={{ 
           overscrollBehavior: 'none',
           touchAction: 'manipulation',
