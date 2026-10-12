@@ -40,3 +40,9 @@ next-env.d.ts
 *.swp
 *.swo
 .env*
+
+# Scratch and logs
+/scratch/
+*.log
+*.patch
+*.orig
